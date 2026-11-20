@@ -16,7 +16,7 @@ public sealed class OwonSimulatorTransport : IScpiTransport
     public string Model { get; }
     public ConnectionKind Kind => ConnectionKind.Simulation;
     public bool IsOpen => open;
-    public TimeSpan Delay { get; set; }
+    public bool WaitForCancellation { get; set; }
     public bool FailNextOperation { get; set; }
     public IReadOnlyList<string> Commands { get { lock (sync) return commands.ToArray(); } }
     public void InjectDisconnect() { lock (sync) open = false; }
@@ -110,7 +110,7 @@ public sealed class OwonSimulatorTransport : IScpiTransport
     private async Task PrepareAsync(CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        if (Delay > TimeSpan.Zero) await Task.Delay(Delay, ct);
+        if (WaitForCancellation) await Task.Delay(Timeout.InfiniteTimeSpan, ct);
         lock (sync)
         {
             if (!open) throw new IOException("Synthetic disconnect");

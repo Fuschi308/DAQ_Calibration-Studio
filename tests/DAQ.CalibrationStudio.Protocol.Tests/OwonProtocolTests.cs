@@ -101,9 +101,9 @@ public sealed class OwonProtocolTests
     [Fact(DisplayName = "Timeout und unbekannter Ausgangszustand")]
     public async Task ScpiCase11()
     {
-        var s = new OwonSimulatorTransport(); await using var c = new OwonDgeClient(s, ModelProfile.Dge2035, timeout: TimeSpan.FromMilliseconds(40));
-        await c.ConnectAsync(); s.Delay = TimeSpan.FromMilliseconds(100);
-        await ThrowsAsync<OperationCanceledException>(() => c.GetStatusAsync());
+        var s = new OwonSimulatorTransport(); await using var c = new OwonDgeClient(s, ModelProfile.Dge2035, timeout: TimeSpan.FromMilliseconds(250));
+        await c.ConnectAsync(); s.WaitForCancellation = true;
+        await ThrowsAsync<OperationCanceledException>(() => c.GetStatusAsync().WaitAsync(TimeSpan.FromSeconds(5)));
         True(!c.IsConnected);
     }
 
@@ -111,9 +111,13 @@ public sealed class OwonProtocolTests
     public async Task ScpiCase12()
     {
         var s = new OwonSimulatorTransport(); await using var c = new OwonDgeClient(s, ModelProfile.Dge2035);
-        await c.ConnectAsync(); s.Delay = TimeSpan.FromSeconds(2);
-        using var cts = new CancellationTokenSource(20);
-        await ThrowsAsync<OperationCanceledException>(() => c.GetFrequencyAsync(1, cts.Token));
+        await c.ConnectAsync();
+        s.WaitForCancellation = true;
+        using var cts = new CancellationTokenSource();
+        var pending = c.GetFrequencyAsync(1, cts.Token);
+        Assert.False(pending.IsCompleted);
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => pending.WaitAsync(TimeSpan.FromSeconds(5)));
     }
 
     [Fact(DisplayName = "Gleichzeitige SCPI-Operationen sind serialisiert")]
@@ -145,7 +149,7 @@ public sealed class OwonProtocolTests
     public async Task ScpiCase16()
     {
         var s = new CorruptNumericTransport(new OwonSimulatorTransport()); await using var c = new OwonDgeClient(s, ModelProfile.Dge2035);
-        await c.ConnectAsync(); await ThrowsAsync<FormatException>(() => c.GetFrequencyAsync(1));
+        await c.ConnectAsync(); await ThrowsAsync<FormatException>(() => c.GetFrequencyAsync(1).WaitAsync(TimeSpan.FromSeconds(5)));
     }
 
     [Fact(DisplayName = "Puls-Tastverhältnis und Frequenzgrenze")]
@@ -203,10 +207,10 @@ public sealed class OwonProtocolTests
     [Fact(DisplayName = "Nach Timeout wird Sitzung geschlossen und frisch verbunden")]
     public async Task ScpiCase22()
     {
-        var s = new OwonSimulatorTransport(); await using var c = new OwonDgeClient(s, ModelProfile.Dge2035, timeout: TimeSpan.FromMilliseconds(40));
-        await c.ConnectAsync(); s.Delay = TimeSpan.FromMilliseconds(100);
-        await ThrowsAsync<OperationCanceledException>(() => c.GetFrequencyAsync(1));
-        True(!s.IsOpen); s.Delay = TimeSpan.Zero;
+        var s = new OwonSimulatorTransport(); await using var c = new OwonDgeClient(s, ModelProfile.Dge2035, timeout: TimeSpan.FromMilliseconds(250));
+        await c.ConnectAsync(); s.WaitForCancellation = true;
+        await ThrowsAsync<OperationCanceledException>(() => c.GetFrequencyAsync(1).WaitAsync(TimeSpan.FromSeconds(5)));
+        True(!s.IsOpen); s.WaitForCancellation = false;
         await c.ConnectAsync(); Equal(1000d, await c.GetFrequencyAsync(1));
         Equal(2, s.Commands.Count(x => x == "*IDN?"));
     }
