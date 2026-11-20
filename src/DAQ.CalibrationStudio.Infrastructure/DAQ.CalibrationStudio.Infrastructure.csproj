@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DAQ.CalibrationStudio.Domain\DAQ.CalibrationStudio.Domain.csproj" />
+    <ProjectReference Include="..\DAQ.CalibrationStudio.Application\DAQ.CalibrationStudio.Application.csproj" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.13" />
+    <PackageReference Include="SQLitePCLRaw.bundle_winsqlite3" Version="2.1.11" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+    <PackageReference Include="PDFsharp-MigraDoc" Version="6.2.4" />
+    <EmbeddedResource Include="Migrations\*.sql" />
+  </ItemGroup>
+</Project>

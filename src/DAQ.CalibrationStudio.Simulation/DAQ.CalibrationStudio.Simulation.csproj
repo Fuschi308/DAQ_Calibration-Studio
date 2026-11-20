@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\DAQ.CalibrationStudio.Application\DAQ.CalibrationStudio.Application.csproj" />
+  </ItemGroup>
+</Project>

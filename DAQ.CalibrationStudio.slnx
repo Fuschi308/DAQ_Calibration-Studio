@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DAQ.CalibrationStudio.App/DAQ.CalibrationStudio.App.csproj" />
+    <Project Path="src/DAQ.CalibrationStudio.Application/DAQ.CalibrationStudio.Application.csproj" />
+    <Project Path="src/DAQ.CalibrationStudio.Daq/DAQ.CalibrationStudio.Daq.csproj" />
+    <Project Path="src/DAQ.CalibrationStudio.Domain/DAQ.CalibrationStudio.Domain.csproj" />
+    <Project Path="src/DAQ.CalibrationStudio.Infrastructure/DAQ.CalibrationStudio.Infrastructure.csproj" />
+    <Project Path="src/DAQ.CalibrationStudio.Instruments/DAQ.CalibrationStudio.Instruments.csproj" />
+    <Project Path="src/DAQ.CalibrationStudio.Simulation/DAQ.CalibrationStudio.Simulation.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DAQ.CalibrationStudio.App.Tests/DAQ.CalibrationStudio.App.Tests.csproj" />
+    <Project Path="tests/DAQ.CalibrationStudio.Calibration.Tests/DAQ.CalibrationStudio.Calibration.Tests.csproj" />
+    <Project Path="tests/DAQ.CalibrationStudio.Infrastructure.Tests/DAQ.CalibrationStudio.Infrastructure.Tests.csproj" />
+    <Project Path="tests/DAQ.CalibrationStudio.Protocol.Tests/DAQ.CalibrationStudio.Protocol.Tests.csproj" />
+  </Folder>
+</Solution>

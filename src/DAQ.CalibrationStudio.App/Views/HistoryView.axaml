@@ -1,0 +1,141 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+             xmlns:v="using:DAQ.CalibrationStudio.App.Views"
+             x:Class="DAQ.CalibrationStudio.App.Views.HistoryView" x:CompileBindings="False">
+  <UserControl.Resources>
+    <c:LocalDateConverter x:Key="LocalDate" />
+  </UserControl.Resources>
+  <Grid RowDefinitions="Auto,*" RowSpacing="16" Margin="16">
+    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+      <c:StudioIcon Glyph="file" Classes="titleIcon" />
+      <StackPanel Grid.Column="1">
+        <TextBlock Classes="title" Text="Kalibrierhistorie &amp; Prüfberichte" />
+        <TextBlock Classes="secondary" Text="Abgeschlossene Prüfläufe und archivierte Messwerte" />
+      </StackPanel>
+      <Button Grid.Column="2" Content="Aktualisieren" Command="{Binding RefreshCommand}" VerticalAlignment="Center" />
+    </Grid>
+    <Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="16">
+      <Border Classes="panel historyList" VerticalAlignment="Top" ClipToBounds="True">
+        <Grid RowDefinitions="Auto,Auto,*">
+          <StackPanel Margin="18,14,18,10" Spacing="10">
+            <TextBlock Classes="heading" Text="Prüfläufe" />
+            <TextBox Text="{Binding SearchText}" PlaceholderText="Suche: ID, Profil, Prüfer, Seriennummer" AutomationProperties.Name="Prüfläufe suchen" />
+            <WrapPanel ItemSpacing="7" LineSpacing="6">
+              <ComboBox Classes="compact" ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}" AutomationProperties.Name="Prüfart filtern" />
+              <ComboBox Classes="compact" ItemsSource="{Binding Outcomes}" SelectedItem="{Binding Outcome}" AutomationProperties.Name="Ergebnis filtern" />
+              <ComboBox Classes="compact" ItemsSource="{Binding Devices}" SelectedItem="{Binding Device}" AutomationProperties.Name="Gerät filtern" />
+              <ComboBox Classes="compact" ItemsSource="{Binding Profiles}" SelectedItem="{Binding Profile}" AutomationProperties.Name="Profil filtern" MaxWidth="210" />
+            </WrapPanel>
+            <WrapPanel ItemSpacing="12" LineSpacing="6">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Classes="label" Text="Von" VerticalAlignment="Center" />
+                <CalendarDatePicker SelectedDate="{Binding From, Converter={StaticResource LocalDate}}"
+                                    SelectedDateFormat="Short" PlaceholderText="TT.MM.JJJJ"
+                                    AutomationProperties.Name="Startdatum" Width="145" />
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Classes="label" Text="Bis" VerticalAlignment="Center" />
+                <CalendarDatePicker SelectedDate="{Binding Until, Converter={StaticResource LocalDate}}"
+                                    SelectedDateFormat="Short" PlaceholderText="TT.MM.JJJJ"
+                                    AutomationProperties.Name="Enddatum" Width="145" />
+              </StackPanel>
+            </WrapPanel>
+          </StackPanel>
+          <Border Grid.Row="1" Classes="tableHead">
+            <Grid ColumnDefinitions="1.25*,1.25*,1.5*,1.1*,.6*" ColumnSpacing="8">
+              <TextBlock Text="Datum" />
+              <TextBlock Grid.Column="1" Text="ID" />
+              <TextBlock Grid.Column="2" Text="Profil" />
+              <TextBlock Grid.Column="3" Text="Ergebnis" />
+              <TextBlock Grid.Column="4" Text="Prüfer" />
+            </Grid>
+          </Border>
+          <ListBox Grid.Row="2" Classes="table" ItemsSource="{Binding Runs}" SelectedItem="{Binding SelectedRun}"
+                   AutomationProperties.Name="Archivierte Prüfläufe">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Border Classes="tableRow">
+                  <Grid ColumnDefinitions="1.25*,1.25*,1.5*,1.1*,.6*" ColumnSpacing="8">
+                    <TextBlock Text="{Binding Date}" ToolTip.Tip="{Binding Date}" />
+                    <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Id}" ToolTip.Tip="{Binding Id}" />
+                    <TextBlock Grid.Column="2" Text="{Binding Profile}" TextWrapping="Wrap" ToolTip.Tip="{Binding Kind}" />
+                    <c:StatusBadge Grid.Column="3" Tone="{Binding Tone}" Content="{Binding Result}" />
+                    <TextBlock Grid.Column="4" Text="{Binding Tester}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+
+      <Grid Grid.Column="1" RowDefinitions="Auto,*">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" VerticalAlignment="Center">
+          <Button Content="CSV exportieren" Command="{Binding ExportCsvCommand}" />
+          <Button Content="PDF exportieren" Command="{Binding ExportPdfCommand}" />
+        </StackPanel>
+        <TabControl Grid.Row="1" Margin="0,6,0,0">
+          <TabItem Header="Berichtsvorschau">
+            <ScrollViewer Margin="0,12,0,0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+              <Grid>
+                <Border Classes="panel" Padding="18,14,18,16" IsVisible="{Binding !HasSelection}">
+                  <TextBlock Classes="secondary" Text="Einen Prüflauf für die Berichtsvorschau auswählen." />
+                </Border>
+                <Border Classes="paper" IsVisible="{Binding HasSelection}" MaxWidth="820" MinHeight="760">
+                  <StackPanel Spacing="14">
+                    <Border BorderBrush="{DynamicResource InkBrush}" BorderThickness="0,0,0,2" Padding="0,0,0,12">
+                      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <StackPanel Spacing="4">
+                          <TextBlock Classes="label" Text="Werksprüfung · nicht akkreditiert" />
+                          <TextBlock Classes="title" Text="{Binding Title}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" Classes="strong" Text="DAQ Calibration Studio" />
+                      </Grid>
+                    </Border>
+                    <StackPanel Spacing="5">
+                      <TextBlock Classes="strong" Text="Prüfling und Ablauf" />
+                      <v:FactList ItemsSource="{Binding Facts}" />
+                    </StackPanel>
+                    <TextBlock Classes="strong" Text="Messergebnisse" />
+                    <v:ReportPointsView />
+                    <TextBlock Classes="strong" Text="Kalibrierkoeffizienten" />
+                    <ItemsControl ItemsSource="{Binding Adjustments}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Border BorderBrush="{DynamicResource PaperLineBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,6">
+                            <Grid ColumnDefinitions="Auto,*,*" ColumnSpacing="12">
+                              <TextBlock Classes="strong" Text="{Binding Channel}" />
+                              <StackPanel Grid.Column="1">
+                                <TextBlock Classes="label" Text="Aktiv" />
+                                <TextBlock Text="{Binding GainOld, StringFormat='Gain {0}'}" />
+                                <TextBlock Text="{Binding OffsetOld, StringFormat='Offset {0}'}" />
+                              </StackPanel>
+                              <StackPanel Grid.Column="2">
+                                <TextBlock Classes="label" Text="Neu ermittelt" />
+                                <TextBlock Text="{Binding GainNew, StringFormat='Gain {0}'}" />
+                                <TextBlock Text="{Binding OffsetNew, StringFormat='Offset {0}'}" />
+                              </StackPanel>
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <v:FactList ItemsSource="{Binding Approvals}" />
+                    <TextBlock Classes="strong" Text="Hinweis zur Aussagekraft" />
+                    <TextBlock Classes="label" Text="{Binding ReportNotice}" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
+              </Grid>
+            </ScrollViewer>
+          </TabItem>
+          <TabItem Header="Messdaten">
+            <ScrollViewer Margin="0,12,0,0" VerticalScrollBarVisibility="Auto">
+              <Border Classes="panel" ClipToBounds="True"><v:ReportPointsView /></Border>
+            </ScrollViewer>
+          </TabItem>
+        </TabControl>
+      </Grid>
+    </Grid>
+  </Grid>
+</UserControl>

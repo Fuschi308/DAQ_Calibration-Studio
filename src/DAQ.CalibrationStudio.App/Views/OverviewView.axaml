@@ -1,0 +1,273 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+             x:Class="DAQ.CalibrationStudio.App.Views.OverviewView" x:CompileBindings="False">
+  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" Margin="16">
+    <Grid RowDefinitions="Auto,*" RowSpacing="16">
+      <Border Classes="panel" MinHeight="63">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+          <ItemsControl ItemsSource="{Binding Kpis}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Classes="line" BorderThickness="0,0,1,0" MinWidth="104" Padding="18,9">
+                  <StackPanel Spacing="0" VerticalAlignment="Center">
+                    <c:ToneText Tone="{Binding Tone}" Classes="metric" Text="{Binding Value}" />
+                    <TextBlock Classes="label" Text="{Binding Label}" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Border>
+
+      <ScrollViewer Grid.Row="1" x:Name="OverviewScroll" HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto" BringIntoViewOnFocusChange="False">
+        <StackPanel Spacing="16">
+          <Border Classes="panel" ClipToBounds="True">
+            <StackPanel>
+              <DockPanel Margin="18,12,14,7" LastChildFill="True">
+                <WrapPanel DockPanel.Dock="Right" Orientation="Horizontal" ItemSpacing="6" HorizontalAlignment="Right">
+                  <Button Classes="tool" Content="Auswahl umschalten" Command="{Binding SelectAllCommand}" />
+                  <Button Classes="tool" Content="Alle Analogkanäle kalibrieren" Command="{Binding CalibrateAllCommand}" />
+                  <Button Classes="tool danger" Content="Koeffizienten zurücksetzen" Command="{Binding ResetCommand}" />
+                </WrapPanel>
+                <TextBlock Classes="heading" Text="Kalibrierübersicht · DAQ-Messkanäle" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" />
+              </DockPanel>
+              <WrapPanel Margin="18,2,12,8" ItemSpacing="12" LineSpacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <c:StudioIcon Glyph="filter" Width="14" Height="14" />
+                  <TextBlock Classes="label" Text="Typ" VerticalAlignment="Center" />
+                  <ListBox Classes="segments" ItemsSource="{Binding TypeFilters}" SelectedItem="{Binding TypeFilter}"
+                           AutomationProperties.Name="Eingangstyp filtern" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Classes="label" Text="Status" VerticalAlignment="Center" />
+                  <ListBox Classes="segments" ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}"
+                           AutomationProperties.Name="Status filtern" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                  <TextBlock Classes="label" Text="Gruppe" VerticalAlignment="Center" />
+                  <ComboBox Classes="compact" ItemsSource="{Binding GroupFilters}" SelectedItem="{Binding GroupFilter}"
+                            AutomationProperties.Name="Kanalgruppe filtern" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Classes="label" Text="Relativ" VerticalAlignment="Center" />
+                  <ListBox Classes="segments" ItemsSource="{Binding RelativeModes}" SelectedItem="{Binding RelativeMode}"
+                           AutomationProperties.Name="Relative Abweichung" />
+                </StackPanel>
+              </WrapPanel>
+              <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <Grid RowDefinitions="36,Auto" MinWidth="836">
+                  <Border Classes="tableHead">
+                    <Grid ColumnDefinitions="30,1.04*,1.08*,1.43*,1.08*,1.10*,1.04*,.89*,.95*,.98*,1.45*" ColumnSpacing="9">
+                      <Button Classes="tool" Command="{Binding SelectAllCommand}" HorizontalAlignment="Left" Padding="0" Width="20"
+                              VerticalAlignment="Center" AutomationProperties.Name="Auswahl für alle sichtbaren Kanäle umschalten"
+                              ToolTip.Tip="Auswahl umschalten">
+                        <c:StudioIcon Glyph="check" Width="14" Height="14" />
+                      </Button>
+                      <TextBlock Grid.Column="1" Text="Kanal" />
+                      <TextBlock Grid.Column="2" Text="Typ" />
+                      <TextBlock Grid.Column="3" Text="Bereich / Konfig." />
+                      <TextBlock Grid.Column="4" Classes="number" Text="Sollwert" />
+                      <TextBlock Grid.Column="5" Classes="number" Text="DAQ-Istwert" />
+                      <TextBlock Grid.Column="6" Classes="number" Text="Abweichung" />
+                      <TextBlock Grid.Column="7" Classes="number" Text="rel. / ppm" />
+                      <TextBlock Grid.Column="8" Classes="number" Text="Grenze (OK)" />
+                      <TextBlock Grid.Column="9" Text="Status" />
+                      <TextBlock Grid.Column="10" Text="Kalibrierstatus" />
+                    </Grid>
+                  </Border>
+                  <ListBox Grid.Row="1" Classes="table overviewTable" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedChannel}"
+                           AutoScrollToSelectedItem="False"
+                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                           AutomationProperties.Name="DAQ-Messkanäle">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate>
+                        <Border Classes="tableRow" ToolTip.Tip="{Binding Name}">
+                          <Grid ColumnDefinitions="30,1.04*,1.08*,1.43*,1.08*,1.10*,1.04*,.89*,.95*,.98*,1.45*" ColumnSpacing="9">
+                            <CheckBox Classes="compact" IsChecked="{Binding IsChecked}" VerticalAlignment="Center"
+                                      AutomationProperties.Name="{Binding Id, StringFormat='Kanal {0} für Kalibrierung auswählen'}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                              <c:PaletteMark Index="{Binding ColorIndex}" />
+                              <TextBlock Classes="strong" Text="{Binding Id}" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" Classes="secondary" Text="{Binding Type}" />
+                            <TextBlock Grid.Column="3" Classes="secondary" Text="{Binding Range}" />
+                            <TextBlock Grid.Column="4" Classes="number" Text="{Binding Requested}" />
+                            <TextBlock Grid.Column="5" Classes="number strong" Text="{Binding Measured}" />
+                            <c:ToneText Grid.Column="6" Classes="number" Tone="{Binding StateTone}" Text="{Binding Error}" />
+                            <TextBlock Grid.Column="7" Classes="number secondary" Text="{Binding Relative}" />
+                            <TextBlock Grid.Column="8" Classes="number secondary" Text="{Binding Tolerance}" />
+                            <c:StatusBadge Grid.Column="9" Tone="{Binding StateTone}" Content="{Binding Status}" />
+                            <c:StatusBadge Grid.Column="10" Classes="outline" Content="{Binding Calibration}" />
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </Grid>
+              </ScrollViewer>
+              <TextBlock Classes="label" Margin="18,8,14,9" TextWrapping="Wrap"
+                         Text="Der DAQ-Istwert zeigt den korrigierten Mittelwert. Über die Kontrollkästchen lassen sich mehrere Kanäle für die Kalibrierung auswählen." />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="panel" Padding="18,13,12,14">
+            <StackPanel Spacing="10">
+              <DockPanel>
+                <WrapPanel DockPanel.Dock="Right" ItemSpacing="8" LineSpacing="5" HorizontalAlignment="Right">
+                  <ComboBox ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedChannel}" MinWidth="106"
+                            AutomationProperties.Name="Diagrammkanal">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate><TextBlock Text="{Binding Id}" /></DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <ListBox Classes="segments" ItemsSource="{Binding ChartModes}" SelectedItem="{Binding ChartMode}"
+                           VerticalAlignment="Center" AutomationProperties.Name="Darstellung des Diagramms" />
+                  <ListBox Classes="segments" ItemsSource="{Binding Windows}" SelectedItem="{Binding ChartWindow}"
+                           VerticalAlignment="Center" AutomationProperties.Name="Zeitfenster des Diagramms" />
+                </WrapPanel>
+                <TextBlock Classes="heading" Text="Live-Diagramm" VerticalAlignment="Center" />
+              </DockPanel>
+              <WrapPanel ItemSpacing="28" LineSpacing="8">
+                <StackPanel>
+                  <TextBlock Classes="label" Text="DAQ-Istwert" />
+                  <TextBlock Classes="reading" Text="{Binding MeasuredText}" />
+                </StackPanel>
+                <StackPanel VerticalAlignment="Bottom">
+                  <TextBlock Classes="label" Text="Sollwert" />
+                  <TextBlock Classes="metric secondary" Text="{Binding SetpointText}" />
+                </StackPanel>
+                <StackPanel VerticalAlignment="Bottom">
+                  <TextBlock Classes="label" Text="Abweichung" />
+                  <c:ToneText Classes="metric" Tone="{Binding SelectedChannel.StateTone}" Text="{Binding ErrorText}" />
+                </StackPanel>
+                <StackPanel VerticalAlignment="Bottom">
+                  <TextBlock Classes="label" Text="Stabilität σ" />
+                  <TextBlock Classes="metric secondary" Text="{Binding StabilityText}" />
+                </StackPanel>
+                <c:StatusBadge Content="{Binding SelectedChannel.Status}" Tone="{Binding SelectedChannel.StateTone}" />
+              </WrapPanel>
+              <c:StudioChart Height="232" Series="{Binding Chart}" WindowSeconds="{Binding ChartWindowSeconds, FallbackValue=0}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+
+    <ScrollViewer Grid.Column="1" Classes="overviewAside"
+                  HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="16">
+        <Border Classes="panel" Padding="18,14,18,16">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Classes="heading" Text="Kalibrierung" />
+              <c:StatusBadge Grid.Column="1" Classes="outline" Content="{Binding SelectedChannel.Id, TargetNullValue=—}" />
+            </Grid>
+            <Grid ColumnDefinitions="136,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" Margin="0,6,0,4">
+              <TextBlock Classes="secondary" Text="Ausgewählter Kanal" />
+              <TextBlock Grid.Column="1" Classes="strong" Text="{Binding ChannelLabel}" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="1" Classes="secondary" Text="Messbereich" />
+              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding RangeLabel}" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="2" Classes="secondary" Text="Aktive Korrektur" />
+              <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CorrectionLabel}" TextWrapping="Wrap" />
+            </Grid>
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+              <StackPanel Spacing="4">
+                <TextBlock Classes="label" Text="Referenzgerät" />
+                <Border Classes="inset" Padding="10,0" MinHeight="32">
+                  <TextBlock Text="{Binding ReferenceName}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                             ToolTip.Tip="{Binding ReferenceName}" />
+                </Border>
+              </StackPanel>
+              <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock Classes="label" Text="Kalibriermethode" />
+                <ComboBox ItemsSource="{Binding Methods}" SelectedItem="{Binding Method}" HorizontalAlignment="Stretch"
+                          AutomationProperties.Name="Kalibriermethode" />
+              </StackPanel>
+            </Grid>
+            <StackPanel Spacing="4">
+              <TextBlock Classes="label" Text="Kalibrierpunkte · getrennt durch /" />
+              <TextBox Text="{Binding PointsText}" AutomationProperties.Name="Kalibrierpunkte" />
+            </StackPanel>
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="10">
+              <StackPanel Spacing="4">
+                <TextBlock Classes="label" Text="Stabilitätskriterium σ &lt;" />
+                <NumericUpDown Value="{Binding Stability}" Minimum="0.000001" Increment="0.0001" FormatString="0.######"
+                               HorizontalAlignment="Stretch" AutomationProperties.Name="Stabilitätskriterium" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock Classes="label" Text="Stabilitätsfenster (s)" />
+                <NumericUpDown Value="{Binding Window}" Minimum="0.1" Increment="0.1" FormatString="0.0"
+                               HorizontalAlignment="Stretch" AutomationProperties.Name="Stabilitätsfenster" />
+              </StackPanel>
+              <StackPanel Grid.Row="1" Spacing="4">
+                <TextBlock Classes="label" Text="Mittelungsdauer (s)" />
+                <NumericUpDown Value="{Binding Averaging}" Minimum="0.1" Increment="0.1" FormatString="0.0"
+                               HorizontalAlignment="Stretch" AutomationProperties.Name="Mittelungsdauer" />
+              </StackPanel>
+              <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                <TextBlock Classes="label" Text="Zul. Abweichung (V/mA)" />
+                <NumericUpDown Value="{Binding Tolerance}" Minimum="0.000001" Increment="0.001" FormatString="0.000###"
+                               HorizontalAlignment="Stretch" AutomationProperties.Name="Zulässige Abweichung" />
+              </StackPanel>
+            </Grid>
+            <StackPanel Spacing="4">
+              <TextBlock Classes="label" Text="Prüfprofil" />
+              <ComboBox ItemsSource="{Binding ProfileNames}" SelectedItem="{Binding SelectedProfile}"
+                        HorizontalAlignment="Stretch" AutomationProperties.Name="Prüfprofil für Kalibrierung" />
+            </StackPanel>
+            <Border Classes="note warn">
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                <c:StudioIcon Glyph="alert" Classes="warn" VerticalAlignment="Top" />
+                <TextBlock Grid.Column="1" Text="{Binding ReferenceNotice}" TextWrapping="Wrap" />
+              </Grid>
+            </Border>
+            <TextBlock Classes="label" Text="{Binding ChannelCountText}" TextWrapping="Wrap" />
+            <WrapPanel ItemSpacing="6" LineSpacing="6">
+              <Button Classes="primary" Content="▷  Kalibrierung starten" Command="{Binding StartCommand}" />
+              <Button Content="Pause" Command="{Binding PauseCommand}" IsVisible="{Binding !CanResume}" />
+              <Button Content="Fortsetzen" Command="{Binding ResumeCommand}" IsVisible="{Binding CanResume}" />
+              <Button Classes="danger" Content="Abbrechen" Command="{Binding CancelCommand}" />
+              <Button Classes="success" Content="Ergebnis übernehmen" Command="{Binding ApproveCommand}" />
+            </WrapPanel>
+            <Button Classes="tool" Content="+  Konfiguration als Prüfprofil speichern" Command="{Binding SaveProfileCommand}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="panel" Padding="18,14,18,16">
+          <StackPanel Spacing="10">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Classes="heading" Text="Prüfablauf" />
+              <c:StatusBadge Grid.Column="1" Content="{Binding RunTitle}" Tone="{Binding RunStateTone}" IsVisible="{Binding RunDetailsVisible}" />
+            </Grid>
+            <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress}" IsVisible="{Binding RunDetailsVisible}" />
+            <TextBlock Classes="secondary" Text="{Binding RunMessage}" TextWrapping="Wrap" />
+            <ItemsControl ItemsSource="{Binding RunSteps}" IsVisible="{Binding RunDetailsVisible}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Classes="inset" Margin="0,0,0,5">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                      <c:StateDot Tone="{Binding Tone}" VerticalAlignment="Center" />
+                      <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock Classes="strong" Text="{Binding Name}" TextWrapping="Wrap" />
+                        <TextBlock Classes="label" Text="{Binding Detail}" TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <WrapPanel ItemSpacing="6" LineSpacing="6">
+              <Button Classes="tool" Content="Verifikation starten" Command="{Binding VerifyCommand}" />
+              <Button Classes="tool" Content="Prüfbericht öffnen" Command="{Binding OpenReportCommand}" />
+            </WrapPanel>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

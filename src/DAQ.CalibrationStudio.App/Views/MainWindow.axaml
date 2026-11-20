@@ -1,0 +1,195 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+        xmlns:v="using:DAQ.CalibrationStudio.App.Views"
+        xmlns:vm="using:DAQ.CalibrationStudio.App.ViewModels"
+        x:Class="DAQ.CalibrationStudio.App.Views.MainWindow" x:CompileBindings="False"
+        Title="DAQ Calibration Studio" Width="1600" Height="960" MinWidth="1180" MinHeight="720"
+        WindowStartupLocation="CenterScreen" Icon="avares://DAQ.CalibrationStudio.App/Assets/studio.ico">
+  <Window.Styles>
+    <Style Selector="Grid.compact :is(Control).hideCompact">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Grid.compact Button.nav">
+      <Setter Property="Padding" Value="7,0" />
+    </Style>
+    <Style Selector="Grid.compact Button.device">
+      <Setter Property="Padding" Value="5,0" />
+    </Style>
+    <Style Selector="Grid.compact ScrollViewer.overviewAside">
+      <Setter Property="Width" Value="345" />
+    </Style>
+    <Style Selector="Grid.short ListBox.overviewTable">
+      <Setter Property="MaxHeight" Value="360" />
+    </Style>
+    <Style Selector="Grid.compact ScrollViewer.profilesAside">
+      <Setter Property="Width" Value="270" />
+    </Style>
+    <Style Selector="Grid.compact ScrollViewer.profilesList">
+      <Setter Property="Width" Value="230" />
+    </Style>
+    <Style Selector="Grid.compact Border.historyList">
+      <Setter Property="Width" Value="484" />
+    </Style>
+    <Style Selector="Grid.compact StackPanel.fnirsiAside">
+      <Setter Property="Width" Value="440" />
+    </Style>
+    <Style Selector="Grid.compact c|StudioChart.scopePlot">
+      <Setter Property="Height" Value="350" />
+    </Style>
+  </Window.Styles>
+  <Window.DataTemplates>
+    <DataTemplate DataType="vm:OverviewViewModel"><v:OverviewView /></DataTemplate>
+    <DataTemplate DataType="vm:DevicesViewModel"><v:DevicesView /></DataTemplate>
+    <DataTemplate DataType="vm:LiveViewModel"><v:LiveView /></DataTemplate>
+    <DataTemplate DataType="vm:ProfilesViewModel"><v:ProfilesView /></DataTemplate>
+    <DataTemplate DataType="vm:HistoryViewModel"><v:HistoryView /></DataTemplate>
+    <DataTemplate DataType="vm:SettingsViewModel"><v:SettingsView /></DataTemplate>
+  </Window.DataTemplates>
+  <Grid x:Name="Frame">
+    <Grid RowDefinitions="48,*,Auto,28" IsEnabled="{Binding !ShowApproval}">
+      <Border Classes="strip" BorderThickness="0,0,0,1">
+        <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" Margin="12,0">
+          <StackPanel Orientation="Horizontal" Spacing="6" Margin="4,0,16,0" VerticalAlignment="Center">
+            <c:StudioIcon Glyph="live" Classes="brandIcon" />
+            <TextBlock Classes="strong" Text="DAQ Calibration Studio" VerticalAlignment="Center" />
+            <TextBlock Classes="label hideCompact" Text="{Binding Version}" VerticalAlignment="Center" />
+          </StackPanel>
+          <ItemsControl Grid.Column="1" ItemsSource="{Binding Navigation}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Button Classes="nav" Classes.selected="{Binding IsSelected}" Command="{Binding $parent[Window].DataContext.NavigateCommand}"
+                        CommandParameter="{Binding}" AutomationProperties.Name="{Binding Label}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <c:StudioIcon Glyph="{Binding Icon}" Classes="hideCompact" />
+                    <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <ItemsControl Grid.Column="3" ItemsSource="{Binding Devices}" VerticalAlignment="Center">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="3" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Button Classes="device" Classes.selected="{Binding IsSelected}" Command="{Binding $parent[Window].DataContext.OpenDeviceCommand}"
+                        CommandParameter="{Binding}" AutomationProperties.Name="{Binding Name}"
+                        AutomationProperties.HelpText="{Binding StatusText}" ToolTip.Tip="{Binding StatusText}">
+                  <StackPanel Orientation="Horizontal" Spacing="7">
+                    <c:StateDot Tone="{Binding StateTone}" VerticalAlignment="Center" />
+                    <StackPanel VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Name}" Classes="strong" FontSize="12" LineHeight="13" />
+                      <TextBlock Text="{Binding StatusText}" Classes="label hideCompact" LineHeight="13" />
+                    </StackPanel>
+                  </StackPanel>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Border Grid.Column="4" Classes="line" BorderThickness="1,0" Padding="11,0" Margin="7,6,5,6">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                <c:StateDot Tone="{Binding RunStateTone}" />
+                <TextBlock Classes="label strong hideCompact" Text="{Binding RunState}" />
+              </StackPanel>
+              <Button Classes="primary" Content="{Binding TopActionText}" Command="{Binding TopActionCommand}"
+                      IsEnabled="{Binding CanTopAction, FallbackValue=True}" />
+            </StackPanel>
+          </Border>
+          <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
+            <Button Classes="tool" AutomationProperties.Name="Ereignisprotokoll" ToolTip.Tip="Ereignisprotokoll"
+                    Command="{Binding ToggleLogCommand}">
+              <c:StudioIcon Glyph="log" />
+            </Button>
+            <Button Classes="tool" AutomationProperties.Name="Farbschema wechseln" ToolTip.Tip="Farbschema wechseln"
+                    Command="{Binding ToggleThemeCommand}">
+              <c:StudioIcon Glyph="sun" />
+            </Button>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <ContentControl Grid.Row="1" Content="{Binding Page}"
+                      HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+
+      <Border Grid.Row="2" Classes="strip" BorderThickness="0,1,0,0" Height="200" IsVisible="{Binding ShowLog}">
+        <Grid RowDefinitions="40,*">
+          <Border Classes="line" BorderThickness="0,0,0,1" Padding="16,0">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+              <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <c:StudioIcon Glyph="log" />
+                <TextBlock Classes="strong" Text="Ereignisprotokoll" />
+              </StackPanel>
+              <ComboBox Grid.Column="2" Classes="compact" VerticalAlignment="Center" MinWidth="110"
+                        ItemsSource="{Binding LogFilters}" SelectedItem="{Binding LogFilter}" AutomationProperties.Name="Protokollstufe" />
+              <Button Grid.Column="3" Classes="tool" Margin="6,0,0,0" VerticalAlignment="Center"
+                      Command="{Binding ToggleLogCommand}" AutomationProperties.Name="Ereignisprotokoll schließen">
+                <c:StudioIcon Glyph="x" />
+              </Button>
+            </Grid>
+          </Border>
+          <ListBox Grid.Row="1" Classes="table" ItemsSource="{Binding Logs}" AutomationProperties.Name="Ereignisse">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Grid ColumnDefinitions="80,78,114,*" Margin="16,3">
+                  <TextBlock Classes="label mono" Text="{Binding Time}" />
+                  <c:ToneText Grid.Column="1" FontSize="12" Text="{Binding Level}" Tone="{Binding Level}" />
+                  <TextBlock Grid.Column="2" Classes="label" Text="{Binding Source}" />
+                  <TextBlock Grid.Column="3" FontSize="12" Text="{Binding Message}" TextWrapping="Wrap" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+
+      <Border Grid.Row="3" Classes="strip" BorderThickness="0,1,0,0">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <Border Background="{DynamicResource SimBrush}" Padding="14,0" IsVisible="{Binding IsSimulated}">
+            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+              <c:StudioIcon Classes="sim" Glyph="cube" Width="14" Height="14" />
+              <TextBlock Text="{Binding ModeLabel}" Foreground="{DynamicResource OnSimBrush}" FontSize="12" FontWeight="SemiBold" />
+            </StackPanel>
+          </Border>
+          <Border Background="{DynamicResource SubtleStrongBrush}" Padding="14,0" IsVisible="{Binding !IsSimulated}">
+            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+              <c:StudioIcon Glyph="chip" Width="14" Height="14" />
+              <TextBlock Classes="label strong" Text="{Binding ModeLabel}" />
+            </StackPanel>
+          </Border>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="14" Margin="14,0" VerticalAlignment="Center">
+            <TextBlock Classes="label" Text="{Binding StatusIdentity}" ToolTip.Tip="{Binding StatusIdentity}"
+                       MaxWidth="420" TextTrimming="CharacterEllipsis" />
+            <TextBlock Classes="label hideCompact" Text="{Binding ActiveProfile}" ToolTip.Tip="{Binding ActiveProfile}"
+                       MaxWidth="345" TextTrimming="CharacterEllipsis" />
+            <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsSimulated}">
+              <TextBlock Classes="label" Text="Zeitraffer" VerticalAlignment="Center" />
+              <ComboBox Classes="compact" MinHeight="22" Height="22" ItemsSource="{Binding SpeedOptions}"
+                        SelectedItem="{Binding Speed}" AutomationProperties.Name="Simulationsgeschwindigkeit">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate><TextBlock Text="{Binding StringFormat='{}{0}×'}" /></DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </StackPanel>
+          </StackPanel>
+          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="8,0,16,0" VerticalAlignment="Center">
+            <TextBlock Classes="label" Text="{Binding StatusClock}" />
+            <TextBlock Classes="label" Text="{Binding OperatorLabel}" />
+            <TextBlock Classes="label hideCompact" Text="{Binding Version, StringFormat='Version {0}'}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+      <Border Grid.Row="1" Grid.RowSpan="2" Classes="panel line strong" IsVisible="{Binding HasNotice}"
+              HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="14,10" MaxWidth="520" Margin="0,0,16,14"
+              IsHitTestVisible="False">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <c:StudioIcon Glyph="info" />
+          <TextBlock Text="{Binding Notice}" TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+    </Grid>
+    <v:ApprovalView x:Name="ApprovalOverlay" DataContext="{Binding Approval}"
+                    IsVisible="{Binding $parent[Window].DataContext.ShowApproval, FallbackValue=False}" />
+  </Grid>
+</Window>
