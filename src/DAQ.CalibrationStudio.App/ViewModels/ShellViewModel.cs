@@ -218,12 +218,13 @@ public sealed partial class ShellViewModel : ObservableObject
     {
         var eq = session.Devices.Active;
         IsSimulated = eq.Simulated;
-        ModeLabel = eq.Simulated ? "Simulation" : "Hardware";
+        ModeLabel = !eq.Simulated ? "Hardware"
+            : eq.ScopeIsSimulated ? "Simulation" : "Simulation · Oszilloskop über USB";
         if (Speed != session.Simulator.Speed)
             Speed = session.Simulator.Speed;
         foreach (var device in Devices)
         {
-            var (label, tone) = Presentation.Connection(eq[device.Kind].Status, eq.Simulated);
+            var (label, tone) = Presentation.Connection(eq[device.Kind].Status, eq.IsDeviceSimulated(device.Kind));
             device.StatusText = label;
             device.StateTone = tone;
             device.IsSelected = Page == devicePage && devicePage.CurrentDevice == device.Kind;

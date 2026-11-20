@@ -19,6 +19,12 @@
     </Grid>
     <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
       <StackPanel Spacing="12">
+        <Border Classes="note" IsVisible="{Binding CanChooseScopeMode}">
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <TextBlock Text="DAQ, FNIRSI und OWON laufen simuliert." TextWrapping="Wrap" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="{Binding ScopeModeText}" Command="{Binding ToggleScopeModeCommand}" />
+          </Grid>
+        </Border>
         <Border Classes="note warn" IsVisible="{Binding !IsConnected}">
           <Grid ColumnDefinitions="Auto,*,180,190,Auto" ColumnSpacing="9">
             <c:StudioIcon Glyph="alert" Classes="warn" />

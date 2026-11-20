@@ -6,7 +6,7 @@ Native Avalonia-Desktopanwendung für Kalibrierung, Verifikation und Funktionspr
 
 Voraussetzung für den bereitgestellten Windows-x64-Build ist Windows 10 (22H2) oder Windows 11. Der eigenständige Build enthält die .NET-Laufzeit. `DAQ.CalibrationStudio.App.exe` direkt aus dem vollständigen Publish-Ordner starten.
 
-Die Anwendung startet im Simulationsmodus und verbindet die vier virtuellen Geräte. Im Hardwaremodus werden Verbindungen pro Gerät ausdrücklich geöffnet. Der Modus ist in der Statusleiste sichtbar.
+Die Anwendung startet im Simulationsmodus und verbindet die vier virtuellen Geräte. Unter **Geräte → PeakTech P 1400** lässt sich **Reales P 1400 auswählen**. **Gerät suchen** und **Verbinden** öffnen dann die USB-Verbindung. DAQ, FNIRSI und OWON laufen dabei simuliert. Der gewählte Modus ist in der Statusleiste sichtbar.
 
 1. In der Übersicht z. B. **AI-V3** auswählen und **Kalibrierung starten**. Die Anwendung setzt nacheinander die Prüfpunkte, wartet auf stabile Messwerte, mittelt und bewertet den Messfehler.
 2. **Bericht öffnen** zeigt den gespeicherten As-found-Befund. CSV und PDF stehen im Bereich **Berichte** zur Verfügung.

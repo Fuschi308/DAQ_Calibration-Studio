@@ -14,7 +14,7 @@ flowchart TD
 
 ## Gerätesitzungen
 
-`Equipment` fasst die vier Gerätetypen eines Betriebsmodus zusammen. `DeviceManager` serialisiert manuelle Befehle, Prüfabläufe, Moduswechsel und Freigaben. Die Telemetrie wartet auf einen freien Slot und pausiert während exklusiver Prüfungen. Laufende Prüfungen veröffentlichen ihre eigenen Messblöcke über denselben Datenpfad. Die physischen Adapter schützen die jeweiligen Endpunkte über Prozessgrenzen hinweg und erkennen Verbindungsfehler.
+`Equipment` fasst die vier Gerätetypen eines Betriebsmodus zusammen. `DeviceManager` serialisiert manuelle Befehle, Prüfabläufe, Moduswechsel und Freigaben. Die Telemetrie wartet auf einen freien Slot und pausiert während exklusiver Prüfungen. Laufende Prüfungen veröffentlichen ihre eigenen Messblöcke über denselben Datenpfad. Die physischen Adapter schützen die jeweiligen Endpunkte über Prozessgrenzen hinweg und erkennen Verbindungsfehler. Im Simulationsbetrieb kann `DeviceManager` ausschließlich das Oszilloskop durch den realen PeakTech-Adapter ersetzen. Die Herkunft des DAQ-Prüflaufs und die Herkunft der Oszilloskop-Aufnahme sind unabhängig. Die Geräteansicht verwirft beim Umschalten alte Oszillogramme.
 
 Vor einem Quellwechsel prüft der Ablauf Toleranzen, Eingangsbereich, Schnittstellenfunktionen und den bestätigten AUS-Zustand. Für Abbruch und Fehler verwendet er separate Zeitlimits für das Wiederherstellen des sicheren Zustands. Fehlende Rückbestätigung erscheint als unbekannter Ausgangszustand mit Aufforderung zur Kontrolle am Prüfaufbau. Ein Wechsel in die Hardwareansicht aktiviert keine Ausgänge.
 

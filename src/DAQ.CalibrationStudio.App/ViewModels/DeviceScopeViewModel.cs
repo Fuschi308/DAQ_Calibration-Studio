@@ -11,7 +11,7 @@ public sealed record ScopeMetric(string Label, string Ch1, string Ch2);
 
 public sealed partial class DeviceScopeViewModel(DevicesViewModel page, StudioSession session) : ObservableObject
 {
-    private DeviceStatus? observed;
+    private IScopeDevice? observed;
     private ScopeCapture? capture;
     private bool capturedInSimulation;
     private bool? running;
@@ -22,10 +22,10 @@ public sealed partial class DeviceScopeViewModel(DevicesViewModel page, StudioSe
     public IReadOnlyList<string> Couplings { get; } = ["DC", "AC", "GND"];
     public IReadOnlyList<string> TriggerChannels { get; } = ["CH1", "CH2"];
     public IReadOnlyList<string> TriggerEdges { get; } = ["Steigend", "Fallend"];
-    public bool CanShow1 => page.Simulation && CanScope();
+    public bool CanShow1 => page.ScopeSimulation && CanScope();
     public string RunText => running is true ? "Stop" : "Run";
-    public string ScopeNotice => page.Simulation ? "Synthetische Messdaten · Cursorzeit in s" :
-        "SCREEN-Min/Max · Zeit ab Fensteranfang · Phase zwischen Kanälen ungeprüft";
+    public string ScopeNotice => page.ScopeSimulation ? "Simuliertes Oszilloskop · Cursorzeit in s" :
+        "Reales Oszilloskop über USB · SCREEN-Min/Max · Phase zwischen Kanälen ungeprüft";
 
     [ObservableProperty] private bool show1 = true;
     [ObservableProperty] private bool show2 = true;
@@ -42,17 +42,18 @@ public sealed partial class DeviceScopeViewModel(DevicesViewModel page, StudioSe
 
     internal void RefreshAvailability()
     {
-        var state = session.Devices.Active.Scope.Status;
-        if (!state.Connected || state.Identity != observed?.Identity)
+        var selected = session.Devices.Active.Scope;
+        var state = selected.Status;
+        if (!state.Connected || !ReferenceEquals(observed, selected))
         {
             capture = null;
             Chart = [];
             Metrics = [];
             settingsLoaded = false;
             lastPoll = default;
-            running = state.Connected && page.Simulation ? true : null;
+            running = state.Connected && page.ScopeSimulation ? true : null;
         }
-        observed = state;
+        observed = state.Connected ? selected : null;
         OnPropertyChanged(nameof(RunText));
         OnPropertyChanged(nameof(CanShow1));
         OnPropertyChanged(nameof(ScopeNotice));
@@ -71,7 +72,7 @@ public sealed partial class DeviceScopeViewModel(DevicesViewModel page, StudioSe
     {
         var now = DateTimeOffset.UtcNow;
         if (!CanScope() || polling || running == false && settingsLoaded
-            || now - lastPoll < TimeSpan.FromMilliseconds(page.Simulation ? 300 : 1800))
+            || now - lastPoll < TimeSpan.FromMilliseconds(page.ScopeSimulation ? 300 : 1800))
             return;
         lastPoll = now;
         _ = PollAsync();
@@ -97,7 +98,7 @@ public sealed partial class DeviceScopeViewModel(DevicesViewModel page, StudioSe
             }, session.LifetimeToken);
             if (!ReferenceEquals(selected, session.Devices.Active)) return;
             if (actual is not null) UpdateSettings(actual);
-            if (measured is not null) UpdateCapture(measured, selected.Simulated);
+            if (measured is not null) UpdateCapture(measured, selected.ScopeIsSimulated);
         }
         catch (OperationCanceledException) { }
         catch (Exception error)
@@ -112,7 +113,7 @@ public sealed partial class DeviceScopeViewModel(DevicesViewModel page, StudioSe
     {
         ScopeSettings? actual = null;
         ScopeCapture? measured = null;
-        var simulated = page.Simulation;
+        var simulated = page.ScopeSimulation;
         await page.PerformAsync(async (equipment, token) =>
         {
             if (TimeDiv is not decimal time || VoltsDiv1 is not decimal scale1 ||
@@ -141,7 +142,7 @@ public sealed partial class DeviceScopeViewModel(DevicesViewModel page, StudioSe
     private async Task ControlAsync(ScopeAction action)
     {
         ScopeCapture? result = null;
-        var simulated = page.Simulation;
+        var simulated = page.ScopeSimulation;
         var commanded = false;
         await page.PerformAsync(async (equipment, token) =>
         {
@@ -149,7 +150,7 @@ public sealed partial class DeviceScopeViewModel(DevicesViewModel page, StudioSe
             await equipment.Scope.ControlScopeAsync(action, token);
             commanded = true;
             // In hardware, Single arms the edge trigger. The next refresh reads the displayed acquisition.
-            if (action != ScopeAction.Single || equipment.Simulated)
+            if (action != ScopeAction.Single || equipment.ScopeIsSimulated)
                 result = await equipment.Scope.CaptureAsync(token);
         });
         if (commanded)
@@ -166,7 +167,7 @@ public sealed partial class DeviceScopeViewModel(DevicesViewModel page, StudioSe
     {
         ScopeSettings? actual = null;
         ScopeCapture? measured = null;
-        var simulated = page.Simulation;
+        var simulated = page.ScopeSimulation;
         await page.PerformAsync(async (equipment, token) =>
         {
             equipment.Require(DeviceKind.PeakTech, DeviceCapability.Scope);

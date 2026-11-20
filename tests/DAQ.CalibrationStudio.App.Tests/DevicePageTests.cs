@@ -4,6 +4,7 @@ using DAQ.CalibrationStudio.App.Services;
 using DAQ.CalibrationStudio.App.ViewModels;
 using DAQ.CalibrationStudio.Application;
 using DAQ.CalibrationStudio.Domain;
+using DAQ.CalibrationStudio.Instruments;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -78,6 +79,60 @@ public sealed class DevicePageTests
             Assert.False(page.Owon.CanSweep);
             await page.Owon.EncoderCommand.ExecuteAsync(null);
             Assert.All(new[] { 1, 2 }, index => Assert.False(session.Simulator.Generator.Current(index).Enabled));
+        }
+        finally { await shell.StopAsync(); }
+    }
+
+    [AvaloniaFact]
+    public async Task SimulationCanSelectOnlyTheRealScopeAndKeepCaptureSourcesSeparate()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "daq-scope-mode-test-" + Guid.NewGuid().ToString("N"));
+        await using var services = App.CreateServices(new StudioPaths(["--data-dir", path]));
+        var shell = services.GetRequiredService<ShellViewModel>();
+        var session = services.GetRequiredService<StudioSession>();
+        var page = services.GetRequiredService<DevicesViewModel>();
+        await shell.InitializeAsync(startTimer: false);
+        try
+        {
+            page.Open(DeviceKind.PeakTech);
+            await page.Scope.RefreshCommand.ExecuteAsync(null);
+            var pureSimulation = session.Devices.Active;
+            Assert.NotEmpty(page.Scope.Chart);
+            Assert.True(page.Scope.ExportCommand.CanExecute(null));
+            Assert.True(page.CanChooseScopeMode);
+
+            await page.ToggleScopeModeCommand.ExecuteAsync(null);
+            shell.Refresh();
+            var mixed = session.Devices.Active;
+            Assert.True(mixed.Simulated);
+            Assert.False(mixed.ScopeIsSimulated);
+            Assert.IsType<PeakTechDevice>(mixed.Scope);
+            Assert.False(mixed.Scope.Status.Connected);
+            foreach (var kind in new[] { DeviceKind.Daq, DeviceKind.Fnirsi, DeviceKind.Owon })
+            {
+                Assert.Same(pureSimulation[kind], mixed[kind]);
+                Assert.True(mixed[kind].Status.Connected);
+                Assert.True(mixed.IsDeviceSimulated(kind));
+            }
+            Assert.Empty(page.Endpoints);
+            Assert.Empty(page.Endpoint);
+            Assert.Empty(page.Scope.Chart);
+            Assert.False(page.Scope.ExportCommand.CanExecute(null));
+            Assert.False(page.ConnectCommand.CanExecute(null));
+            Assert.Contains("Reales Oszilloskop", page.Scope.ScopeNotice);
+            Assert.Contains("Oszilloskop über USB", shell.ModeLabel);
+
+            page.Open(DeviceKind.Fnirsi);
+            Assert.False(page.CanChooseScopeMode);
+            Assert.True(page.Fnirsi.ToggleOutputCommand.CanExecute(null));
+            page.Open(DeviceKind.PeakTech);
+            await page.ToggleScopeModeCommand.ExecuteAsync(null);
+            Assert.Same(pureSimulation, session.Devices.Active);
+            Assert.Equal("Simulation", page.Endpoint);
+            Assert.True(pureSimulation.Scope.Status.Connected);
+            await page.Scope.RefreshCommand.ExecuteAsync(null);
+            Assert.NotEmpty(page.Scope.Chart);
+            Assert.True(page.Scope.ExportCommand.CanExecute(null));
         }
         finally { await shell.StopAsync(); }
     }

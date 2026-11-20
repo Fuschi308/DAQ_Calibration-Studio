@@ -7,7 +7,7 @@ namespace DAQ.CalibrationStudio.Instruments;
 
 public sealed class PeakTechDevice()
     : InstrumentSession(DeviceKind.PeakTech, "PeakTech P 1400", "USB / libusb-win32",
-        "SCREEN CH1/CH2 und Teilmenge der Bedienung am P 1400 V1.2.1 geprüft · Studio-Adapter offen"),
+        "SCREEN CH1/CH2 über Studio an Firmware V1.2.1 geprüft"),
         IScopeDevice
 {
     private Process? _process;

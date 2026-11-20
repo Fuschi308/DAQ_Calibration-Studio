@@ -47,6 +47,11 @@ public sealed partial class DevicesViewModel : ObservableObject
     public bool ShowScope => CurrentDevice == DeviceKind.PeakTech;
     public bool IsConnected => CurrentStatus.Connected;
     public bool Simulation => session.Devices.Active.Simulated;
+    public bool CanChooseScopeMode => ShowScope && Simulation;
+    public string ScopeModeText => ScopeSimulation ? "Reales P 1400 auswählen" : "Simuliertes Oszilloskop wählen";
+
+    internal bool ScopeSimulation => session.Devices.Active.ScopeIsSimulated;
+    private bool CurrentDeviceSimulated => session.Devices.Active.IsDeviceSimulated(CurrentDevice);
 
     internal DeviceStatus CurrentStatus => session.Devices.Active[CurrentDevice].Status;
     internal bool Can(DeviceKind kind, DeviceCapability capability) =>
@@ -88,15 +93,15 @@ public sealed partial class DevicesViewModel : ObservableObject
     partial void OnEndpointChanged(string value)
     {
         if (!loadingEndpoints && !string.IsNullOrWhiteSpace(value))
-            addresses[(Simulation, CurrentDevice)] = value;
+            addresses[(CurrentDeviceSimulated, CurrentDevice)] = value;
         ConnectCommand.NotifyCanExecuteChanged();
     }
 
     private void LoadEndpoint()
     {
         loadingEndpoints = true;
-        Endpoints = Simulation ? ["Simulation"] : [];
-        Endpoint = Simulation ? "Simulation" : addresses.GetValueOrDefault((false, CurrentDevice), "");
+        Endpoints = CurrentDeviceSimulated ? ["Simulation"] : [];
+        Endpoint = CurrentDeviceSimulated ? "Simulation" : addresses.GetValueOrDefault((false, CurrentDevice), "");
         loadingEndpoints = false;
         details = [];
         lastStatus = null;
@@ -115,16 +120,33 @@ public sealed partial class DevicesViewModel : ObservableObject
     }
 
     private bool connectionAllowed => !session.Busy && CurrentStatus.State != DeviceState.Connecting
-        && (CurrentStatus.Connected || Simulation || !string.IsNullOrWhiteSpace(Endpoint));
+        && (CurrentStatus.Connected || CurrentDeviceSimulated || !string.IsNullOrWhiteSpace(Endpoint));
 
     private bool canDiscover => !session.Busy;
     private bool canIdentify => !session.Busy && IsConnected;
+    private bool canToggleScopeMode => !session.Busy && CanChooseScopeMode;
+
+    [RelayCommand(CanExecute = nameof(canToggleScopeMode))]
+    private async Task ToggleScopeModeAsync()
+    {
+        var chooseHardware = ScopeSimulation;
+        await session.PerformAsync(async () =>
+        {
+            await session.Devices.SetSimulationScopeAsync(chooseHardware, session.LifetimeToken);
+            if (CurrentDevice == DeviceKind.PeakTech)
+                LoadEndpoint();
+            session.Say(chooseHardware
+                ? "P 1400 ausgewählt. Gerät suchen und verbinden."
+                : "Simuliertes Oszilloskop verbunden.");
+        }, exclusive: true);
+        UpdateStatus(force: true);
+    }
 
     [RelayCommand(CanExecute = nameof(connectionAllowed))]
     private Task ConnectAsync()
     {
         var kind = CurrentDevice;
-        var address = Simulation ? "Simulation" : Endpoint;
+        var address = CurrentDeviceSimulated ? "Simulation" : Endpoint;
         return PerformAsync(async (equipment, token) =>
         {
             var device = equipment[kind];
@@ -203,6 +225,7 @@ public sealed partial class DevicesViewModel : ObservableObject
         var equipment = session.Devices.Active;
         var status = equipment[CurrentDevice].Status;
         var busy = session.Busy;
+        var simulated = equipment.IsDeviceSimulated(CurrentDevice);
         var deviceChanged = lastStatus != status || lastMode != equipment.Simulated;
         var commandChanged = deviceChanged || lastBusy != busy;
         if (!force && !deviceChanged && !commandChanged) return;
@@ -216,7 +239,7 @@ public sealed partial class DevicesViewModel : ObservableObject
         }
 
         Title = status.Name;
-        (StatusText, StateTone) = Presentation.Connection(status, equipment.Simulated);
+        (StatusText, StateTone) = Presentation.Connection(status, simulated);
         ConnectText = status.Connected ? "Trennen" : "Verbinden";
         Icon = CurrentDevice switch { DeviceKind.Daq => "daq", DeviceKind.Fnirsi => "source", DeviceKind.Owon => "generator", _ => "scope" };
         Subtitle = $"{status.Interface} · {status.Verification}";
@@ -227,7 +250,7 @@ public sealed partial class DevicesViewModel : ObservableObject
             new("Firmware", status.Identity?.Firmware ?? "—"),
             new("Hardware-Revision", status.Identity?.Revision ?? "—"),
             new("Schnittstelle", status.Interface),
-            new("Treiber", DriverText(CurrentDevice, equipment.Simulated)),
+            new("Treiber", DriverText(CurrentDevice, simulated)),
             new("Prüfstatus", status.Verification)
         ];
         Diagnostics = status.Error is { Length: > 0 } error ? [new("Gerätefehler", error, "err")] : details;
@@ -236,6 +259,9 @@ public sealed partial class DevicesViewModel : ObservableObject
         ConnectCommand.NotifyCanExecuteChanged();
         DiscoverCommand.NotifyCanExecuteChanged();
         IdentifyCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(CanChooseScopeMode));
+        OnPropertyChanged(nameof(ScopeModeText));
+        ToggleScopeModeCommand.NotifyCanExecuteChanged();
         Daq.RefreshAvailability();
         Fnirsi.RefreshAvailability();
         Owon.RefreshAvailability();

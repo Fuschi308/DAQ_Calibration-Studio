@@ -6,7 +6,7 @@ Der Hardwaremodus startet ohne aktive Sitzungen. Die Gerätesuche liefert COM-Ka
 | --- | --- | --- | --- |
 | FNIRSI SG-004A | 9600 8N1, Registerrahmen mit CRC, Firmware-Rohwort, Modus, Eingangsregister, typisierter Sollwert, Sollwertprogrammierung im bereits am Gerät eingestellten Modus | 23 übernommene .NET-Protokollfälle sowie Adaptertest mit synthetischem Byte-Transport | COM-Port, Protokoll, Betriebsmodi und elektrische Wirkung offen |
 | OWON DGE2035, DGE2070, DGE3062 | USBTMC/VISA, Modellprofile, zwei Kanäle, Sinus/Rechteck/Puls/Rampe, Frequenz, Vpp, Offset, Phase, Puls-Tastgrad, High-Z/50 Ω, Timer-Sweep und Statusrücklesung | 24 übernommene .NET-Protokollfälle sowie Adaptertest mit synthetischem SCPI | VISA-Treiber, Modellantworten und Ausgangsfunktionen offen |
-| PeakTech P 1400 | SCREEN CH1/CH2 mit Min/Max-Hüllkurve, Geräte-ID, Auswahl bestätigter Bedienbefehle, Einzeltrigger | Synthetische Python-Tests für Abschnittsgrößen, CH1/CH2, Skalierung, Rücklesung und abgewiesene Einstellungen | Historisch am P 1400 V1.2.1 geprüft. Neuer Studio-Ablauf mit Python-Brücke offen |
+| PeakTech P 1400 | SCREEN CH1/CH2 mit Min/Max-Hüllkurve, Geräte-ID, Auswahl bestätigter Bedienbefehle, Einzeltrigger | Synthetische Python-Tests für Abschnittsgrößen, CH1/CH2, Skalierung, Rücklesung und abgewiesene Einstellungen | Studio-Adapter am P 1400 V1.2.1 mit USB-Suche, Identifikation, Einstellungen und SCREEN-Aufnahme CH1/CH2 geprüft. Historische Nachweise für die Bedienbefehle |
 | STM32H7-DAQ RevB | USB CDC, Protokoll 1, Identifikation, Diagnose, explizites Start/Stopp, Analog-/RTD-/Digital-Snapshots und Rohzähler | DAQ-Firmware-/Hosttests der Vorprojekte; Studio-Adaptertests mit synthetischen Serviceantworten | USB, Messdaten, Start-/Stopp-Verhalten und Messgenauigkeit am Board offen |
 
 ## FNIRSI SG-004A · USB / COM
@@ -30,6 +30,10 @@ Vor einer Neukonfiguration liest der Adapter OFF zurück. Er prüft die programm
 Die VISA- und SCPI-Antworten der drei Modelle sind noch am Gerät zu prüfen. Das Programmierhandbuch nennt DGE2000. DGE3062 verwendet im Studio ein eigenes konservatives Profil für die gemeinsame dokumentierte Teilmenge. Für dynamische A/B-Quadratur fehlt ein Nachweis phasenstarrer Frequenzänderungen, daher bleibt diese Betriebsart in der Simulation. Die spätere RS422-Leitungstreiberstufe gehört zum externen Aufbau. [OWON-Programmierhandbuch](https://www.owon.co.jp/download/01a11fa0-84c7-7dbf-894c-c655b032c508/)
 
 ## PeakTech P 1400 · USB Bulk
+
+Über **Geräte → PeakTech P 1400 → Reales P 1400 auswählen** kann Studio das angeschlossene Oszilloskop im Simulationsbetrieb als Einzelgerät nutzen. Nach **Gerät suchen** und **Verbinden** stammen Oszillogramme vom P 1400. Prüfläufe und DAQ-Aufzeichnungen stammen weiterhin aus dem simulierten Prüfstand. Oszilloskop-CSV kennzeichnet die Herkunft der jeweiligen Aufnahme.
+
+Am 20. November 2026 wurden unter Windows 11 mit dem Studio-Adapter drei Bildschirmaufnahmen von einem P 1400 mit Firmware V1.2.1 geprüft. Beide Kanäle lieferten je Aufnahme 760 gültige Min/Max-Paare. Die Zeitbasis betrug 500 µs/div. Die Rücklesung der Einstellungen vor und nach der Messung war identisch. Die USB-Sitzung wurde anschließend freigegeben.
 
 Erfordert Windows mit vorhandenem libusb-win32-Treiber, `libusb0.dll` in der Systemarchitektur des Python-Prozesses und installiertem Python 3.10 oder neuer. Die Anwendung sucht eine vorhandene `python.exe` im PATH oder in der Bestandsliste des Python-Launchers. Optional die vorhandene Datei mit `DAQ_CALIBRATION_PYTHON` als vollständigen Pfad angeben. Die Python-Brücke nutzt die Standardbibliothek. Es sind keine pip-Pakete erforderlich. DS_Wave schließen und genau ein P 1400 anschließen. Die explizit ausgewählte USB-Seriennummer, VID/PID `5345:1234`, Interface mit Bulk `01/81` und Modellkennung müssen passen.
 

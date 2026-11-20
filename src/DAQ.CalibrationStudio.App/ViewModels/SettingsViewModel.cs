@@ -121,6 +121,11 @@ public sealed partial class SettingsViewModel : ObservableObject
         var index = Array.IndexOf(DeviceNames, FaultDevice);
         if (index < 0) return;
         var kind = (DeviceKind)index;
+        if (!session.Devices.Active.IsDeviceSimulated(kind))
+        {
+            session.Say("Für dieses Gerät ist der Hardwaretreiber ausgewählt.");
+            return;
+        }
         session.Simulator.InjectFault(kind);
         session.LogDeviceFault(FaultDevice, "Kommunikationsfehler ausgelöst (Simulation)");
         session.Say($"{FaultDevice}: simulierter Verbindungsverlust.");

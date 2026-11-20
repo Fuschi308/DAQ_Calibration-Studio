@@ -10,11 +10,13 @@ public sealed class Equipment
     public Equipment(bool simulated, IEnumerable<IDeviceSession> sessions, Func<int>? simulationSpeed = null)
     {
         Simulated = simulated;
+        ScopeIsSimulated = simulated;
         devices = sessions.ToDictionary(device => device.Status.Kind);
         speed = simulationSpeed ?? (() => 1);
     }
 
     public bool Simulated { get; }
+    public bool ScopeIsSimulated { get; private init; }
     public int Speed => Simulated ? speed() : 1;
     public IReadOnlyList<IDeviceSession> Sessions => devices.Values.ToArray();
     public IDaqDevice Daq => (IDaqDevice)devices[DeviceKind.Daq];
@@ -22,6 +24,12 @@ public sealed class Equipment
     public IWaveformGenerator Generator => (IWaveformGenerator)devices[DeviceKind.Owon];
     public IScopeDevice Scope => (IScopeDevice)devices[DeviceKind.PeakTech];
     public IDeviceSession this[DeviceKind kind] => devices[kind];
+
+    public bool IsDeviceSimulated(DeviceKind kind) => kind == DeviceKind.PeakTech ? ScopeIsSimulated : Simulated;
+
+    internal Equipment WithHardwareScope(IScopeDevice scope) => new(
+        Simulated, devices.Where(pair => pair.Key != DeviceKind.PeakTech).Select(pair => pair.Value).Append(scope), speed)
+        { ScopeIsSimulated = false };
 
     public Task DelayAsync(double seconds, CancellationToken ct) =>
         Task.Delay(TimeSpan.FromSeconds(seconds / Speed), ct);
@@ -84,12 +92,30 @@ public sealed class DeviceManager(Equipment simulated, Equipment physical, ILogg
 
     public Task SwitchAsync(bool simulation, CancellationToken ct = default) => UseAsync(async (current, token) =>
     {
-        var next = simulation ? simulationEquipment : physical;
-        if (ReferenceEquals(next, current))
+        if (current.Simulated == simulation)
             return;
+        var next = simulation ? simulationEquipment : physical;
         await DisconnectAllAsync(current, token).ConfigureAwait(false);
         selected = next;
         log.LogInformation("Betriebsmodus gewechselt. Simulation {Simulation}", simulation);
+    }, ct);
+
+    public Task SetSimulationScopeAsync(bool useHardware, CancellationToken ct = default) => UseAsync(async (current, token) =>
+    {
+        if (!current.Simulated)
+            throw new InvalidOperationException("Die Oszilloskop-Auswahl steht im Simulationsbetrieb zur Verfügung.");
+        if (useHardware == !current.ScopeIsSimulated)
+            return;
+
+        if (current.Scope.Status.State != DeviceState.Disconnected)
+            await current.Scope.DisconnectAsync(token).ConfigureAwait(false);
+
+        var next = useHardware ? simulationEquipment.WithHardwareScope(physical.Scope) : simulationEquipment;
+        if (next.ScopeIsSimulated)
+            await next.Scope.ConnectAsync("Simulation", token).ConfigureAwait(false);
+
+        selected = next;
+        log.LogInformation("Oszilloskop im Simulationsbetrieb gewechselt. Hardware {HardwareScope}", useHardware);
     }, ct);
 
     public async ValueTask DisposeAsync()
