@@ -1,0 +1,116 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+             xmlns:v="using:DAQ.CalibrationStudio.App.Views"
+             x:Class="DAQ.CalibrationStudio.App.Views.FnirsiView" x:CompileBindings="False">
+  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+    <StackPanel Classes="fnirsiAside" Spacing="12">
+      <Border Classes="panel" Padding="18,14,18,16">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="heading" Text="Bedienpanel" VerticalAlignment="Center" />
+            <c:StatusBadge Grid.Column="1" Tone="sim" Content="Simuliert" IsVisible="{Binding $parent[Window].DataContext.IsSimulated}" />
+          </Grid>
+          <DockPanel>
+            <Button DockPanel.Dock="Right" Classes="primary" Content="{Binding OutputText}" Command="{Binding ToggleOutputCommand}"
+                    IsEnabled="{Binding CanToggle}" />
+            <ListBox Classes="segments" ItemsSource="{Binding Modes}" SelectedItem="{Binding Mode}" HorizontalAlignment="Left"
+                     VerticalAlignment="Center" IsEnabled="{Binding CanSelectMode}" AutomationProperties.Name="FNIRSI Betriebsart" />
+          </DockPanel>
+
+          <Border Classes="inset" Padding="18,13">
+            <StackPanel Spacing="6">
+              <TextBlock Classes="label" Text="Angeforderter Sollwert" />
+              <TextBlock Classes="display" Text="{Binding RequestedText}" />
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <TextBlock Classes="label" Text="Vom Gerät bestätigter Sollwert" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="1" Classes="strong" Text="{Binding ConfirmedText}" />
+              </Grid>
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <TextBlock Classes="label" Text="Unabhängiger Referenzwert" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="1" Text="{Binding IndependentText}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <StackPanel Spacing="4" IsEnabled="{Binding CanProgram}">
+            <TextBlock Classes="label" Text="Ausgangswert einstellen" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+              <NumericUpDown Value="{Binding Setpoint}" Increment="0.001" FormatString="0.000"
+                             HorizontalAlignment="Stretch" AutomationProperties.Name="FNIRSI Ausgangssollwert" />
+              <Button Grid.Column="1" Content="Sollwert setzen" Command="{Binding ApplyCommand}" />
+            </Grid>
+          </StackPanel>
+
+          <StackPanel Spacing="6" IsEnabled="{Binding CanProgram}">
+            <TextBlock Classes="label" Text="Schnellwahl Prüfpunkte" />
+            <ItemsControl ItemsSource="{Binding QuickPoints}">
+              <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel ItemSpacing="6" LineSpacing="6" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Button Content="{Binding Label}" MinWidth="65" HorizontalContentAlignment="Center"
+                          Command="{Binding DataContext.QuickPointCommand, RelativeSource={RelativeSource AncestorType={x:Type v:FnirsiView}}}" CommandParameter="{Binding Value}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="panel" Padding="18,14,18,16" IsVisible="{Binding $parent[Window].DataContext.IsSimulated}">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="heading" Text="Automatikmodus" />
+            <c:StatusBadge Grid.Column="1" Tone="sim" Content="Simuliert" />
+          </Grid>
+          <TextBlock Classes="label" Text="Fährt die Schnellwahlpunkte der gewählten Betriebsart ab." TextWrapping="Wrap" />
+          <WrapPanel ItemSpacing="8" LineSpacing="5">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="label" Text="Verweilzeit je Punkt (s)" />
+              <NumericUpDown Value="{Binding AutoDwell}" Minimum="0.1" Increment="0.5" FormatString="0.0" MinWidth="135"
+                             AutomationProperties.Name="Verweilzeit je FNIRSI Prüfpunkt" />
+            </StackPanel>
+            <CheckBox Content="Endlos wiederholen" IsChecked="{Binding AutoRepeat}" VerticalAlignment="Bottom" />
+            <Button Classes="primary" Content="{Binding AutoText}" Command="{Binding AutoCommand}" VerticalAlignment="Bottom" />
+          </WrapPanel>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+
+    <StackPanel Grid.Column="1" Spacing="12">
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+        <Border Classes="panel" Padding="18,14,18,16">
+          <StackPanel Spacing="12">
+            <TextBlock Classes="heading" Text="Zuordnung zum DAQ-Kanal" TextWrapping="Wrap" />
+            <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding ChannelIds}" SelectedItem="{Binding ChannelId}"
+                      AutomationProperties.Name="Zuordnung des FNIRSI-Ausgangs zum DAQ-Kanal" />
+            <ItemsControl ItemsSource="{Binding ChannelReadings}">
+              <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel ItemSpacing="16" LineSpacing="8" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="label" Text="{Binding Label}" />
+                    <c:ToneText Classes="metric" Tone="{Binding Tone}" Text="{Binding Value}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="1" Classes="panel" Padding="18,14,18,16">
+          <StackPanel Spacing="12">
+            <TextBlock Classes="heading" Text="Gerätestatus und Grenzen" TextWrapping="Wrap" />
+            <v:FactList ItemsSource="{Binding DataContext.Facts, RelativeSource={RelativeSource AncestorType={x:Type v:DevicesView}}}" />
+            <v:FactList ItemsSource="{Binding DataContext.Diagnostics, RelativeSource={RelativeSource AncestorType={x:Type v:DevicesView}}}" />
+          </StackPanel>
+        </Border>
+      </Grid>
+      <Border Classes="panel" Padding="18,14,18,16">
+        <StackPanel Spacing="12">
+          <TextBlock Classes="heading" Text="Ausgangssignal über Zeit" />
+          <c:StudioChart Series="{Binding Chart}" Height="244" WindowSeconds="12" ShowCursor="True" />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </Grid>
+</UserControl>

@@ -1,0 +1,213 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+             xmlns:v="using:DAQ.CalibrationStudio.App.Views"
+             xmlns:vm="using:DAQ.CalibrationStudio.App.ViewModels"
+             x:Class="DAQ.CalibrationStudio.App.Views.ProfilesView" x:CompileBindings="False">
+  <Grid RowDefinitions="Auto,*" RowSpacing="16" Margin="16">
+    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+      <c:StudioIcon Glyph="flow" Classes="titleIcon" />
+      <StackPanel Grid.Column="1">
+        <TextBlock Classes="title" Text="Prüfabläufe &amp; Profile" />
+        <TextBlock Classes="secondary" Text="Profile bearbeiten und reproduzierbare Prüfabläufe ausführen." />
+      </StackPanel>
+    </Grid>
+    <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+      <ScrollViewer Classes="profilesList" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="12">
+          <Border Classes="panel" Padding="18,14,18,16">
+            <StackPanel Spacing="12">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="heading" Text="Prüfprofile" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="tool" Content="+  Neu" Command="{Binding NewCommand}" />
+              </Grid>
+              <ListBox Classes="cards" ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}"
+                       AutomationProperties.Name="Prüfprofile">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ProfileItem">
+                    <StackPanel Spacing="3">
+                      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="5">
+                        <TextBlock Classes="label" Text="{Binding Version, StringFormat='Rev. {0}'}" />
+                        <c:StatusBadge Grid.Column="1" Classes="outline" Content="{Binding Kind}" />
+                      </Grid>
+                      <TextBlock Classes="strong" Text="{Binding Name}" TextWrapping="Wrap" />
+                      <TextBlock Classes="label" Text="{CompiledBinding Steps.Count, StringFormat='{}{0} Schritte'}" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </StackPanel>
+          </Border>
+          <Border Classes="panel" Padding="18,14,18,16">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="heading" Text="Funktionsprüfung oder Kalibrierung?" TextWrapping="Wrap" />
+              <c:StatusBadge Content="Funktionsprüfung" Tone="ok" />
+              <TextBlock Classes="label" Text="Prüft Messungen gegen die festgelegten Grenzwerte." TextWrapping="Wrap" />
+              <c:StatusBadge Content="Kalibrierung" Tone="accent" />
+              <TextBlock Classes="label" Text="Ermittelt die Abweichung vor der Justierung (As-found)." TextWrapping="Wrap" />
+              <c:StatusBadge Content="Verifikation" Tone="sim" />
+              <TextBlock Classes="label" Text="Kontrollmessung nach der Justierung (As-left)." TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+
+      <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <Border Classes="panel" ClipToBounds="True">
+          <StackPanel>
+            <StackPanel Margin="18,14,18,16" Spacing="9">
+              <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+                  <Button Classes="tool" Content="Duplizieren" Command="{Binding DuplicateCommand}" />
+                  <Button Content="Speichern" Command="{Binding SaveCommand}" />
+                </StackPanel>
+                <TextBlock Classes="heading" Text="Prüfprofil-Editor" VerticalAlignment="Center" />
+              </DockPanel>
+              <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                <StackPanel Spacing="4">
+                  <TextBlock Classes="label" Text="Name" />
+                  <TextBox Text="{Binding Name}" AutomationProperties.Name="Profilname" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="4">
+                  <TextBlock Classes="label" Text="Art" />
+                  <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}" MinWidth="123"
+                            AutomationProperties.Name="Prüfart" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="4">
+                  <TextBlock Classes="label" Text="Methode" />
+                  <ComboBox ItemsSource="{Binding Methods}" SelectedItem="{Binding Method}" MinWidth="123"
+                            AutomationProperties.Name="Kalibriermethode des Profils" />
+                </StackPanel>
+              </Grid>
+              <TextBlock Classes="label" Text="{Binding VersionText}" />
+            </StackPanel>
+            <Border Classes="tableHead">
+              <Grid ColumnDefinitions="*,1.1*,*,*,*" ColumnSpacing="8">
+                <TextBlock Text="Kanal" />
+                <TextBlock Grid.Column="1" Text="Prüfschritt" />
+                <TextBlock Grid.Column="2" Text="Sollwert" Classes="number" />
+                <TextBlock Grid.Column="3" Text="Dauer (s)" Classes="number" />
+                <TextBlock Grid.Column="4" Text="Grenze" Classes="number" />
+              </Grid>
+            </Border>
+            <ListBox Classes="table" ItemsSource="{Binding Steps}" SelectedItem="{Binding SelectedStep}" MaxHeight="440"
+                     AutomationProperties.Name="Schritte des Prüfprofils">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <Border Classes="tableRow">
+                    <Grid ColumnDefinitions="*,1.1*,*,*,*" ColumnSpacing="8">
+                      <TextBlock Classes="strong" Text="{Binding ChannelId}" />
+                      <TextBlock Grid.Column="1" Text="{Binding Label}" ToolTip.Tip="{Binding Kind}" />
+                      <TextBlock Grid.Column="2" Classes="number" Text="{Binding Value, StringFormat='{}{0:0.####}'}" />
+                      <TextBlock Grid.Column="3" Classes="number" Text="{Binding Duration, StringFormat='{}{0:0.##}'}" />
+                      <TextBlock Grid.Column="4" Classes="number" Text="{Binding Tolerance, StringFormat='{}{0:0.####}'}" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+            <Border Classes="line" BorderThickness="0,1,0,0" Padding="18,14,18,16">
+              <StackPanel Spacing="9">
+                <DockPanel>
+                  <WrapPanel DockPanel.Dock="Right" ItemSpacing="5" LineSpacing="5">
+                    <Button Classes="tool" Content="↑" ToolTip.Tip="Schritt nach oben" AutomationProperties.Name="Schritt nach oben"
+                            Command="{Binding MoveUpCommand}" />
+                    <Button Classes="tool" Content="↓" ToolTip.Tip="Schritt nach unten" AutomationProperties.Name="Schritt nach unten"
+                            Command="{Binding MoveDownCommand}" />
+                    <Button Classes="tool danger" Content="Entfernen" Command="{Binding RemoveStepCommand}" />
+                  </WrapPanel>
+                  <TextBlock Classes="heading" Text="Prüfschritt bearbeiten" VerticalAlignment="Center" />
+                </DockPanel>
+                <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                  <StackPanel Spacing="4">
+                    <TextBlock Classes="label" Text="Schritttyp" />
+                    <ComboBox ItemsSource="{Binding StepKinds}" SelectedItem="{Binding StepKind}" HorizontalAlignment="Stretch"
+                              AutomationProperties.Name="Schritttyp" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock Classes="label" Text="Kanal" />
+                    <ComboBox ItemsSource="{Binding ChannelIds}" SelectedItem="{Binding ChannelId}" HorizontalAlignment="Stretch"
+                              AutomationProperties.Name="Kanal des Prüfschritts" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="2" Spacing="4">
+                    <TextBlock Classes="label" Text="Sollwert" />
+                    <NumericUpDown Value="{Binding StepValue}" FormatString="0.####" ShowButtonSpinner="False"
+                                   AutomationProperties.Name="Sollwert des Prüfschritts" />
+                  </StackPanel>
+                  <StackPanel Grid.Row="1" Spacing="4">
+                    <TextBlock Classes="label" Text="Dauer (s)" />
+                    <NumericUpDown Value="{Binding StepDuration}" Minimum="0" FormatString="0.##" Increment="0.1"
+                                   ShowButtonSpinner="False" AutomationProperties.Name="Dauer des Prüfschritts" />
+                  </StackPanel>
+                  <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                    <TextBlock Classes="label" Text="Toleranz" />
+                    <NumericUpDown Value="{Binding StepTolerance}" Minimum="0" Increment="0.001" FormatString="0.#####"
+                                   ShowButtonSpinner="False" AutomationProperties.Name="Toleranz des Prüfschritts" />
+                  </StackPanel>
+                  <StackPanel Grid.Row="1" Grid.Column="2" Spacing="4">
+                    <TextBlock Classes="label" Text="Fenster (s)" />
+                    <NumericUpDown Value="{Binding StepWindow}" Minimum="0.1" FormatString="0.##" Increment="0.1"
+                                   ShowButtonSpinner="False" AutomationProperties.Name="Stabilitätsfenster des Prüfschritts" />
+                  </StackPanel>
+                  <StackPanel Grid.Row="2" Spacing="4">
+                    <TextBlock Classes="label" Text="Stabilität σ" />
+                    <NumericUpDown Value="{Binding StepStability}" Minimum="0" Increment="0.001" FormatString="0.######"
+                                   ShowButtonSpinner="False" AutomationProperties.Name="Stabilität des Prüfschritts" />
+                  </StackPanel>
+                  <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Spacing="4">
+                    <TextBlock Classes="label" Text="Bezeichnung" />
+                    <TextBox Text="{Binding StepLabel}" AutomationProperties.Name="Bezeichnung des Prüfschritts" />
+                  </StackPanel>
+                </Grid>
+                <WrapPanel ItemSpacing="7" LineSpacing="5">
+                  <Button Content="+  Schritt hinzufügen" Command="{Binding AddStepCommand}" />
+                  <Button Content="Schritt aktualisieren" Command="{Binding UpdateStepCommand}" />
+                </WrapPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Border>
+      </ScrollViewer>
+
+      <ScrollViewer Grid.Column="2" Classes="profilesAside" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="12">
+          <Border Classes="panel" Padding="18,14,18,16">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="heading" Text="Ausführung" />
+              <WrapPanel ItemSpacing="6" LineSpacing="6">
+                <Button Classes="primary" Content="▷  Prüfablauf starten" Command="{Binding StartCommand}" />
+                <Button Content="Pause" Command="{Binding PauseCommand}" />
+                <Button Content="Fortsetzen" Command="{Binding ResumeCommand}" />
+                <Button Content="Schritt überspringen" Command="{Binding SkipCommand}" />
+                <Button Classes="danger" Content="Abbrechen" Command="{Binding CancelCommand}" />
+              </WrapPanel>
+              <TextBlock Classes="strong" Text="{Binding RunTitle}" TextWrapping="Wrap" />
+              <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress}" />
+              <TextBlock Classes="secondary" Text="{Binding RunMessage}" TextWrapping="Wrap" />
+              <ItemsControl ItemsSource="{Binding RunSteps}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Classes="inset" Margin="0,0,0,5">
+                      <StackPanel Spacing="2">
+                        <TextBlock Classes="strong" Text="{Binding Name}" TextWrapping="Wrap" />
+                        <TextBlock Classes="label" Text="{Binding Detail}" TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+          <Border Classes="panel" Padding="18,14,18,16">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="heading" Text="Ergebnis" />
+              <c:StudioChart Series="{Binding Chart}" Height="176" />
+              <Button Classes="tool" Content="Prüfbericht öffnen" Command="{Binding OpenReportCommand}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Grid>
+</UserControl>

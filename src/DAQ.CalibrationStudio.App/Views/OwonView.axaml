@@ -1,0 +1,182 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+             xmlns:v="using:DAQ.CalibrationStudio.App.Views"
+             x:Class="DAQ.CalibrationStudio.App.Views.OwonView" x:CompileBindings="False">
+  <StackPanel Spacing="12">
+    <Grid ColumnDefinitions="2*,1.12*" ColumnSpacing="16">
+      <ItemsControl ItemsSource="{Binding Channels}">
+        <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Classes="panel" Margin="0,0,8,0" Padding="18,14,18,16"
+                    IsEnabled="{Binding DataContext.CanWaveform, RelativeSource={RelativeSource AncestorType={x:Type v:OwonView}}}">
+              <StackPanel Spacing="12">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Classes="heading" Text="{Binding Name, StringFormat='Kanal {0}'}" VerticalAlignment="Center" />
+                  <Button Grid.Column="1" Content="{Binding OutputText}" Command="{Binding ToggleOutputCommand}" />
+                </Grid>
+                <StackPanel Spacing="4">
+                  <TextBlock Classes="label" Text="Signalform" />
+                  <ComboBox ItemsSource="{Binding Waveforms}" SelectedItem="{Binding Waveform}" HorizontalAlignment="Stretch"
+                            AutomationProperties.Name="OWON Signalform" />
+                </StackPanel>
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="12">
+                  <StackPanel Spacing="4">
+                    <TextBlock Classes="label" Text="Frequenz (Hz)" />
+                    <NumericUpDown Value="{Binding Frequency}" Minimum="0.001" Increment="1" FormatString="0.###" ShowButtonSpinner="False"
+                                   AutomationProperties.Name="OWON Frequenz" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock Classes="label" Text="Amplitude (Vpp)" />
+                    <NumericUpDown Value="{Binding Amplitude}" Minimum="0" Increment="0.1" FormatString="0.###" ShowButtonSpinner="False"
+                                   AutomationProperties.Name="OWON Amplitude" />
+                  </StackPanel>
+                  <StackPanel Grid.Row="1" Spacing="4">
+                    <TextBlock Classes="label" Text="DC-Offset (V)" />
+                    <NumericUpDown Value="{Binding Offset}" Increment="0.1" FormatString="0.###" ShowButtonSpinner="False"
+                                   AutomationProperties.Name="OWON Gleichspannungsversatz" />
+                  </StackPanel>
+                  <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                    <TextBlock Classes="label" Text="Phase (°)" />
+                    <NumericUpDown Value="{Binding Phase}" Increment="0.1" FormatString="0.#" ShowButtonSpinner="False"
+                                   AutomationProperties.Name="OWON Phase" />
+                  </StackPanel>
+                  <StackPanel Grid.Row="2" Spacing="4">
+                    <TextBlock Classes="label" Text="Tastverhältnis (%)" />
+                    <NumericUpDown Value="{Binding Duty}" Minimum="0" Maximum="100" Increment="0.1" FormatString="0.#" ShowButtonSpinner="False"
+                                   AutomationProperties.Name="OWON Tastverhältnis" />
+                  </StackPanel>
+                  <StackPanel Grid.Row="2" Grid.Column="1" Spacing="4">
+                    <TextBlock Classes="label" Text="Ausgangslast" />
+                    <ComboBox ItemsSource="{Binding Loads}" SelectedItem="{Binding Load}" HorizontalAlignment="Stretch"
+                              AutomationProperties.Name="OWON Ausgangslast" />
+                  </StackPanel>
+                </Grid>
+                <Button Content="Signalparameter anwenden" Command="{Binding ApplyCommand}" />
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <Border Grid.Column="1" Classes="panel" Padding="18,14,18,16">
+        <StackPanel Spacing="12">
+          <TextBlock Classes="heading" Text="Signalvorschau CH1 + CH2" />
+          <c:StudioChart Height="235" Series="{Binding Chart}" />
+          <Button Classes="tool" Content="*IDN? abfragen" Command="{Binding IdentifyCommand}" />
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <Border Classes="panel" Padding="18,14,18,16">
+      <StackPanel Spacing="12">
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+          <TextBlock Classes="heading" Text="Encoder-Simulator (Inkrementalgeber A/B)" VerticalAlignment="Center" />
+          <c:StatusBadge Grid.Column="1" Tone="sim" Content="Simuliert" />
+          <c:StatusBadge Grid.Column="2" Tone="warn" Content="Quadratur bei Sweep ungeprüft" />
+        </Grid>
+        <Grid ColumnDefinitions="340,*" ColumnSpacing="16">
+          <StackPanel Spacing="10" IsEnabled="{Binding CanEncoder}">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="label" Text="Betriebsart" />
+              <ComboBox ItemsSource="{Binding EncoderModes}" SelectedItem="{Binding EncoderMode}"
+                        HorizontalAlignment="Stretch" AutomationProperties.Name="Encoder Betriebsart" />
+            </StackPanel>
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="12">
+              <StackPanel Spacing="4">
+                <TextBlock Classes="label" Text="Impulse je Umdrehung" />
+                <NumericUpDown Value="{Binding Pulses}" Minimum="1" AutomationProperties.Name="Impulse pro Umdrehung" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock Classes="label" Text="Drehzahl (U/min)" />
+                <NumericUpDown Value="{Binding Rpm}" Minimum="0" Increment="100" AutomationProperties.Name="Encoder Drehzahl" />
+              </StackPanel>
+              <StackPanel Grid.Row="1" Spacing="4">
+                <TextBlock Classes="label" Text="Startdrehzahl (U/min)" />
+                <NumericUpDown Value="{Binding StartRpm}" Minimum="0" Increment="100" AutomationProperties.Name="Encoder Startdrehzahl" />
+              </StackPanel>
+              <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                <TextBlock Classes="label" Text="Max. Drehzahl (U/min)" />
+                <NumericUpDown Value="{Binding MaxRpm}" Minimum="0" Increment="100" AutomationProperties.Name="Encoder maximale Drehzahl" />
+              </StackPanel>
+              <StackPanel Grid.Row="2" Spacing="4">
+                <TextBlock Classes="label" Text="Beschleunigungsdauer (s)" />
+                <NumericUpDown Value="{Binding Duration}" Minimum="0.1" Increment="0.5" FormatString="0.0" AutomationProperties.Name="Encoder Beschleunigungsdauer" />
+              </StackPanel>
+              <StackPanel Grid.Row="2" Grid.Column="1" Spacing="4">
+                <TextBlock Classes="label" Text="Verzögerungsdauer (s)" />
+                <NumericUpDown Value="{Binding Deceleration}" Minimum="0.1" Increment="0.5" FormatString="0.0" AutomationProperties.Name="Encoder Verzögerungsdauer" />
+              </StackPanel>
+              <StackPanel Grid.Row="3" Spacing="4">
+                <TextBlock Classes="label" Text="Phasenversatz A/B (°)" />
+                <NumericUpDown Value="{Binding Phase}" Minimum="0" Maximum="360" FormatString="0.#" AutomationProperties.Name="Encoder Phasenversatz" />
+              </StackPanel>
+              <StackPanel Grid.Row="3" Grid.Column="1" Spacing="4">
+                <TextBlock Classes="label" Text="Drehrichtung" />
+                <ComboBox ItemsSource="{Binding Directions}" SelectedItem="{Binding Direction}"
+                          HorizontalAlignment="Stretch" AutomationProperties.Name="Encoder Drehrichtung" />
+              </StackPanel>
+            </Grid>
+            <Button Classes="primary" Content="{Binding EncoderText}" Command="{Binding EncoderCommand}" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Spacing="12">
+            <ItemsControl ItemsSource="{Binding EncoderMetrics}">
+              <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel ItemSpacing="28" LineSpacing="6" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Spacing="3">
+                    <TextBlock Classes="label" Text="{Binding Label}" />
+                    <c:ToneText Classes="metric" Tone="{Binding Tone}" Text="{Binding Value}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <c:StudioChart Series="{Binding EncoderChart}" Height="215" />
+            <Border Classes="note sim">
+              <StackPanel Spacing="4">
+                <TextBlock Classes="strong" Text="OWON CH1/CH2 → RS422-Leitungstreiber → DAQ ENC1" TextWrapping="Wrap" />
+                <TextBlock Text="Der RS422-Leitungstreiber gehört zum externen Prüfaufbau. Die Ausgangsfrequenz ergibt sich aus Impulsen je Umdrehung × Drehzahl ÷ 60."
+                           TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <Border Classes="panel" Padding="18,14,18,16" IsEnabled="{Binding CanSweep}">
+      <StackPanel Spacing="12">
+        <TextBlock Classes="heading" Text="Frequenz-Sweep" />
+        <WrapPanel ItemSpacing="12" LineSpacing="8">
+          <StackPanel Spacing="4" MinWidth="90">
+            <TextBlock Classes="label" Text="Kanal" />
+            <ComboBox ItemsSource="{Binding SweepChannels}" SelectedItem="{Binding SweepChannel}" AutomationProperties.Name="Sweep-Kanal" />
+          </StackPanel>
+          <StackPanel Spacing="4" Width="122">
+            <TextBlock Classes="label" Text="Startfrequenz (Hz)" />
+            <NumericUpDown Value="{Binding SweepStart}" Minimum="0.001" FormatString="0.###" ShowButtonSpinner="False"
+                           AutomationProperties.Name="Sweep-Startfrequenz" />
+          </StackPanel>
+          <StackPanel Spacing="4" Width="122">
+            <TextBlock Classes="label" Text="Endfrequenz (Hz)" />
+            <NumericUpDown Value="{Binding SweepStop}" Minimum="0.001" FormatString="0.###" ShowButtonSpinner="False"
+                           AutomationProperties.Name="Sweep-Endfrequenz" />
+          </StackPanel>
+          <StackPanel Spacing="4" Width="110">
+            <TextBlock Classes="label" Text="Dauer (s)" />
+            <NumericUpDown Value="{Binding SweepDuration}" Minimum="0.01" FormatString="0.##" ShowButtonSpinner="False"
+                           AutomationProperties.Name="Sweep-Dauer" />
+          </StackPanel>
+          <StackPanel Spacing="4" MinWidth="95">
+            <TextBlock Classes="label" Text="Modus" />
+            <ComboBox ItemsSource="{Binding SweepModes}" SelectedItem="{Binding SweepMode}" AutomationProperties.Name="Sweep-Modus" />
+          </StackPanel>
+          <Button Content="Sweep starten" Command="{Binding SweepCommand}" VerticalAlignment="Bottom" />
+          <Button Classes="danger" Content="Sweep stoppen" Command="{Binding StopSweepCommand}" VerticalAlignment="Bottom" />
+        </WrapPanel>
+        <TextBlock Classes="secondary" Text="{Binding SweepStatus}" TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+  </StackPanel>
+</UserControl>

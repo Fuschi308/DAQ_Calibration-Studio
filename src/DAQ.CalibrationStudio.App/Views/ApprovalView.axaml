@@ -1,0 +1,104 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+             x:Class="DAQ.CalibrationStudio.App.Views.ApprovalView" x:CompileBindings="False"
+             AutomationProperties.Name="Kalibrierergebnis übernehmen">
+  <Border Background="{DynamicResource OverlayBrush}">
+    <Border Classes="panel" Width="1040" MaxHeight="650" Margin="24" HorizontalAlignment="Center"
+            VerticalAlignment="Center" BoxShadow="0 12 32 0 #68000000">
+      <Grid RowDefinitions="60,*,Auto">
+        <Grid Margin="18,0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+          <c:StudioIcon Glyph="write" Classes="titleIcon" Width="16" Height="16" />
+          <TextBlock Grid.Column="1" Classes="heading" Text="Kalibrierergebnis übernehmen (Justierung der DAQ)"
+                     VerticalAlignment="Center" />
+          <Button Grid.Column="2" Classes="tool" Command="{Binding CancelCommand}" VerticalAlignment="Center"
+                  AutomationProperties.Name="Dialog schließen">
+            <c:StudioIcon Glyph="x" />
+          </Button>
+        </Grid>
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="18,0,18,16" Spacing="12">
+            <Border Classes="panel" CornerRadius="5" ClipToBounds="True">
+              <StackPanel>
+                <Border Classes="tableHead">
+                  <Grid ColumnDefinitions="*,*,*,*,*,*,*" ColumnSpacing="10">
+                    <TextBlock Text="Kanal" />
+                    <TextBlock Grid.Column="1" Classes="number" Text="Gain aktiv" />
+                    <TextBlock Grid.Column="2" Classes="number" Text="Gain neu" />
+                    <TextBlock Grid.Column="3" Classes="number" Text="Offset aktiv" />
+                    <TextBlock Grid.Column="4" Classes="number" Text="Offset neu" />
+                    <TextBlock Grid.Column="5" Classes="number" Text="As-found max |Δ|" />
+                    <TextBlock Grid.Column="6" Classes="number" Text="As-left erw. max |Δ|" />
+                  </Grid>
+                </Border>
+                <ItemsControl ItemsSource="{Binding Rows}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Border Classes="tableRow">
+                        <Grid ColumnDefinitions="*,*,*,*,*,*,*" ColumnSpacing="10">
+                          <TextBlock Classes="strong" Text="{Binding Channel}" />
+                          <TextBlock Grid.Column="1" Classes="number" Text="{Binding GainOld}" />
+                          <TextBlock Grid.Column="2" Classes="number strong" Text="{Binding GainNew}" />
+                          <TextBlock Grid.Column="3" Classes="number" Text="{Binding OffsetOld}" />
+                          <TextBlock Grid.Column="4" Classes="number strong" Text="{Binding OffsetNew}" />
+                          <TextBlock Grid.Column="5" Classes="number" Foreground="{DynamicResource WarnTextBrush}" Text="{Binding AsFound}" />
+                          <TextBlock Grid.Column="6" Classes="number" Foreground="{DynamicResource OkTextBrush}" Text="{Binding AsLeft}" />
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+              <StackPanel Spacing="12" IsEnabled="{Binding !Writing}">
+                <StackPanel Spacing="4">
+                  <TextBlock Classes="label" Text="Speicherziel" />
+                  <ListBox Classes="segments" ItemsSource="{Binding Targets}" SelectedItem="{Binding Target}"
+                           HorizontalAlignment="Left" AutomationProperties.Name="Speicherziel" />
+                  <TextBlock Classes="label" Text="Flash speichert dauerhaft. RAM gilt für die laufende Sitzung." TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Spacing="4" HorizontalAlignment="Left" Width="160">
+                  <TextBlock Classes="label" Text="Prüfer-Kennung" />
+                  <TextBox x:Name="OperatorField" Text="{Binding OperatorId}" AutomationProperties.Name="Prüfer-Kennung" />
+                </StackPanel>
+                <CheckBox IsChecked="{Binding Confirmed}">
+                  <TextBlock Text="Ich habe die neuen Koeffizienten geprüft und bestätige die gewählte Aktion für die angezeigte DAQ."
+                             TextWrapping="Wrap" />
+                </CheckBox>
+              </StackPanel>
+              <StackPanel Grid.Column="1" Spacing="8">
+                <Border Classes="note warn">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                    <c:StudioIcon Glyph="alert" Classes="warn" VerticalAlignment="Top" />
+                    <TextBlock Grid.Column="1" TextWrapping="Wrap"
+                               Text="Bei dieser Justierung wird die Abweichung gegenüber der angegebenen Referenz korrigiert. Die Rückführbarkeit ergibt sich aus den Referenzdaten im Bericht." />
+                  </Grid>
+                </Border>
+                <Border Classes="note">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                    <c:StudioIcon Glyph="info" VerticalAlignment="Top" />
+                    <TextBlock Grid.Column="1" Classes="secondary" TextWrapping="Wrap"
+                               Text="Nach dem Schreiben wird eine Verifikation mit denselben Prüfpunkten empfohlen." />
+                  </Grid>
+                </Border>
+              </StackPanel>
+            </Grid>
+            <TextBlock Classes="label" Text="{Binding Status}" TextWrapping="Wrap" />
+          </StackPanel>
+        </ScrollViewer>
+        <Border Grid.Row="2" Classes="line" BorderThickness="0,1,0,0" Padding="18,12">
+          <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+            <TextBlock Classes="label" Text="{Binding Identity}" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Classes="danger" Content="Ergebnis verwerfen" Command="{Binding DiscardCommand}"
+                    Height="36" MinWidth="96" />
+            <Button Grid.Column="2" x:Name="CancelButton" Content="Abbrechen" Command="{Binding CancelCommand}"
+                    Height="36" MinWidth="96" HorizontalContentAlignment="Center" />
+            <Button Grid.Column="3" Classes="primary" Content="{Binding CommitText, FallbackValue='In DAQ schreiben'}" Command="{Binding CommitCommand}"
+                    Height="36" MinWidth="96" />
+          </Grid>
+        </Border>
+      </Grid>
+    </Border>
+  </Border>
+</UserControl>

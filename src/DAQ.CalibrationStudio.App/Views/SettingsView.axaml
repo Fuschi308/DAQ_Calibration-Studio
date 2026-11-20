@@ -1,0 +1,187 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+             xmlns:v="using:DAQ.CalibrationStudio.App.Views"
+             x:Class="DAQ.CalibrationStudio.App.Views.SettingsView" x:CompileBindings="False">
+  <Grid RowDefinitions="Auto,*" RowSpacing="16" Margin="16">
+    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+      <c:StudioIcon Glyph="sliders" Classes="titleIcon" />
+      <StackPanel Grid.Column="1">
+        <TextBlock Classes="title" Text="Einstellungen" />
+        <TextBlock Classes="secondary" Text="Geräte, Referenzen, Grenzwerte und Darstellung" />
+      </StackPanel>
+    </Grid>
+    <Grid Grid.Row="1" ColumnDefinitions="220,*" ColumnSpacing="16">
+      <Border Classes="panel" Padding="8" VerticalAlignment="Top">
+        <ListBox Classes="sectionNav" ItemsSource="{Binding Sections}" SelectedItem="{Binding Section}"
+                 AutomationProperties.Name="Einstellungsbereiche" />
+      </Border>
+      <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="12">
+          <Border Classes="panel" Padding="18,14,18,16" IsVisible="{Binding ShowGeneral}">
+            <StackPanel Spacing="14">
+              <TextBlock Classes="heading" Text="Allgemein" />
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="14" MaxWidth="920" HorizontalAlignment="Left">
+                <StackPanel Spacing="4">
+                  <TextBlock Classes="label" Text="Prüfer-Kennung" />
+                  <TextBox Text="{Binding Operator}" MinWidth="210" AutomationProperties.Name="Prüfer-Kennung" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="4">
+                  <TextBlock Classes="label" Text="Prüfbedingungen" />
+                  <TextBox Text="{Binding Conditions}" MinWidth="300" AutomationProperties.Name="Umgebungs- und Prüfbedingungen" />
+                </StackPanel>
+              </Grid>
+              <ToggleSwitch Content="Helles Farbschema" IsChecked="{Binding LightTheme}" OnContent="Ein" OffContent="Aus" />
+              <Button Classes="primary" Content="Einstellungen speichern" Command="{Binding SaveCommand}" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="panel" Padding="18,14,18,16" IsVisible="{Binding ShowCalibration}">
+            <StackPanel Spacing="12">
+              <TextBlock Classes="heading" Text="Kalibrierung und Geräte" />
+              <TextBlock Classes="secondary" TextWrapping="Wrap"
+                         Text="Die Kanalparameter und Kalibrierpunkte werden in der Übersicht eingestellt. Wiederkehrende Einstellungen lassen sich als Prüfprofil speichern." />
+              <Border Classes="note warn">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                  <c:StudioIcon Glyph="alert" Classes="warn" VerticalAlignment="Top" />
+                  <TextBlock Grid.Column="1" TextWrapping="Wrap"
+                             Text="Eine Justierung wird in der Vorschau geprüft und mit Prüfer-Kennung sowie Checkbox ausdrücklich freigegeben. Die DAQ-Verbindung und das Speicherziel bestimmen, ob die Koeffizienten geschrieben werden können." />
+                </Grid>
+              </Border>
+              <TextBlock TextWrapping="Wrap"
+                         Text="Geräte suchen, verbinden, identifizieren und diagnostizieren: im Reiter Geräte das gewünschte Instrument wählen." />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="panel" IsVisible="{Binding ShowLimits}" ClipToBounds="True">
+            <StackPanel>
+              <StackPanel Margin="18,14,18,12" Spacing="5">
+                <TextBlock Classes="heading" Text="Grenzwerte" />
+                <TextBlock Classes="secondary" Text="Zulässige Abweichung je Messkanal." />
+              </StackPanel>
+              <Border Classes="tableHead">
+                <Grid ColumnDefinitions="2*,160,*" ColumnSpacing="12">
+                  <TextBlock Text="Messkanal" />
+                  <TextBlock Grid.Column="1" Text="Toleranz" />
+                  <TextBlock Grid.Column="2" Text="Einheit" />
+                </Grid>
+              </Border>
+              <ItemsControl ItemsSource="{Binding Limits}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Classes="tableRow" Padding="10,3">
+                      <Grid ColumnDefinitions="2*,160,*" ColumnSpacing="12">
+                        <TextBlock Text="{Binding Label}" />
+                        <NumericUpDown Grid.Column="1" Value="{Binding Value}" Minimum="0" Increment="0.001" FormatString="0.######"
+                                       AutomationProperties.Name="{Binding Label, StringFormat='Toleranz {0}'}" />
+                        <TextBlock Grid.Column="2" Classes="label" Text="{Binding Unit}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <Button Classes="primary" Content="Grenzwerte speichern" Command="{Binding SaveCommand}" Margin="18,12,18,16" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="panel" Padding="18,14,18,16" IsVisible="{Binding ShowReferences}">
+            <StackPanel Spacing="12">
+              <TextBlock Classes="heading" Text="Referenzen &amp; Rückführung" />
+              <ItemsControl ItemsSource="{Binding References}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Classes="inset" Margin="0,0,0,10">
+                      <StackPanel Spacing="10" Margin="2">
+                        <TextBlock Classes="strong" Text="{Binding Model}" />
+                        <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                          <StackPanel Spacing="4">
+                            <TextBlock Classes="label" Text="Seriennummer" />
+                            <TextBox Text="{Binding Serial}" AutomationProperties.Name="Seriennummer der Referenz" />
+                          </StackPanel>
+                          <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Classes="label" Text="Genauigkeit" />
+                            <TextBox Text="{Binding Accuracy}" AutomationProperties.Name="Genauigkeit der Referenz" />
+                          </StackPanel>
+                          <StackPanel Grid.Column="2" Spacing="4">
+                            <TextBlock Classes="label" Text="Kalibrierdatum" />
+                            <TextBox Text="{Binding CalibrationDate}" PlaceholderText="TT.MM.JJJJ" AutomationProperties.Name="Kalibrierdatum der Referenz" />
+                          </StackPanel>
+                          <StackPanel Grid.Row="1" Spacing="4">
+                            <TextBlock Classes="label" Text="Kalibrierschein-Nr." />
+                            <TextBox Text="{Binding Certificate}" AutomationProperties.Name="Kalibrierschein der Referenz" />
+                          </StackPanel>
+                          <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                            <TextBlock Classes="label" Text="Messunsicherheit" />
+                            <NumericUpDown Value="{Binding Uncertainty}" Minimum="0" Increment="0.001" FormatString="0.######"
+                                           AutomationProperties.Name="Messunsicherheit der Referenz" />
+                          </StackPanel>
+                          <CheckBox Grid.Row="1" Grid.Column="2" Content="Rückführbar kalibriert" IsChecked="{Binding Traceable}" VerticalAlignment="Bottom" />
+                        </Grid>
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <Button Classes="primary" Content="Referenzen speichern" Command="{Binding SaveCommand}" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="panel" Padding="18,14,18,16" IsVisible="{Binding ShowSimulation}">
+            <StackPanel Spacing="14">
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <TextBlock Classes="heading" Text="Simulation &amp; Hardwarebetrieb" VerticalAlignment="Center" />
+                <c:StatusBadge Grid.Column="1" Content="Simulation aktiv" Tone="sim" IsVisible="{Binding IsSimulated}" />
+                <c:StatusBadge Grid.Column="1" Classes="outline" Content="Hardwarebetrieb" IsVisible="{Binding !IsSimulated}" />
+              </Grid>
+              <Button Classes="primary" Content="In Hardwarebetrieb wechseln" Command="{Binding SwitchModeCommand}" IsVisible="{Binding IsSimulated}" />
+              <Button Classes="primary" Content="Simulation starten" Command="{Binding SwitchModeCommand}" IsVisible="{Binding !IsSimulated}" />
+              <StackPanel Spacing="14" IsVisible="{Binding IsSimulated}">
+                <WrapPanel ItemSpacing="12" LineSpacing="8">
+                  <StackPanel Spacing="4">
+                    <TextBlock Classes="label" Text="Zeitraffer" />
+                    <ListBox Classes="segments" ItemsSource="{Binding SpeedOptions}" SelectedItem="{Binding Speed}"
+                             AutomationProperties.Name="Simulationsgeschwindigkeit" />
+                  </StackPanel>
+                  <StackPanel Spacing="4" Width="154">
+                    <TextBlock Classes="label" Text="Rauschfaktor" />
+                    <NumericUpDown Value="{Binding Noise}" Minimum="0" Increment="0.1" FormatString="0.0" AutomationProperties.Name="Simulierter Rauschfaktor" />
+                  </StackPanel>
+                  <Button Content="Rauschfaktor anwenden" Command="{Binding ApplyNoiseCommand}" VerticalAlignment="Bottom" />
+                </WrapPanel>
+                <WrapPanel ItemSpacing="12" LineSpacing="8">
+                  <StackPanel Spacing="4" Width="210">
+                    <TextBlock Classes="label" Text="Simulator" />
+                    <ComboBox ItemsSource="{Binding DeviceNames}" SelectedItem="{Binding FaultDevice}" HorizontalAlignment="Stretch"
+                              AutomationProperties.Name="Simulator für Fehlerprüfung" />
+                  </StackPanel>
+                  <Button Classes="danger" Content="Kommunikationsfehler auslösen" Command="{Binding InjectFaultCommand}" VerticalAlignment="Bottom" />
+                </WrapPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="panel" Padding="18,14,18,16" IsVisible="{Binding ShowStorage}">
+            <StackPanel Spacing="12">
+              <TextBlock Classes="heading" Text="Datenspeicherung" />
+              <StackPanel Spacing="4">
+                <TextBlock Classes="label" Text="Lokaler Datenordner" />
+                <TextBox Text="{Binding DataDirectory, Mode=OneWay}" IsReadOnly="True" AutomationProperties.Name="Lokaler Datenordner" />
+              </StackPanel>
+              <Button Content="Datenordner öffnen" Command="{Binding OpenDataCommand}" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="panel" Padding="18,14,18,16" IsVisible="{Binding ShowArchitecture}">
+            <StackPanel Spacing="12">
+              <TextBlock Classes="heading" Text="Architektur" />
+              <TextBlock TextWrapping="Wrap"
+                         Text="Avalonia stellt die native Oberfläche bereit. Die Anwendung führt Prüfabläufe über gemeinsame Treiberschnittstellen aus und archiviert Ergebnisse in SQLite." />
+              <TextBlock Classes="secondary" TextWrapping="Wrap"
+                         Text="Simulierte und physische Geräte nutzen dieselbe Ablaufsteuerung. Gerätefähigkeiten bestimmen, welche Bedienfunktionen im Hardwarebetrieb verfügbar sind." />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Grid>
+</UserControl>

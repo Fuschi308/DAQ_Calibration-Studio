@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <Product>DAQ Calibration Studio</Product>
+    <Description>Kalibrierung und Funktionsprüfung für die STM32H7-DAQ</Description>
+    <ApplicationIcon>Assets\studio.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.6" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.6" />
+    <PackageReference Include="ScottPlot.Avalonia" Version="5.1.59" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.15" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.15" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DAQ.CalibrationStudio.Application\DAQ.CalibrationStudio.Application.csproj" />
+    <ProjectReference Include="..\DAQ.CalibrationStudio.Infrastructure\DAQ.CalibrationStudio.Infrastructure.csproj" />
+    <ProjectReference Include="..\DAQ.CalibrationStudio.Instruments\DAQ.CalibrationStudio.Instruments.csproj" />
+    <ProjectReference Include="..\DAQ.CalibrationStudio.Daq\DAQ.CalibrationStudio.Daq.csproj" />
+    <ProjectReference Include="..\DAQ.CalibrationStudio.Simulation\DAQ.CalibrationStudio.Simulation.csproj" />
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+</Project>
