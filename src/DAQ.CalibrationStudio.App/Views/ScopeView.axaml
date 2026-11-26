@@ -1,0 +1,160 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+             xmlns:v="using:DAQ.CalibrationStudio.App.Views"
+             x:Class="DAQ.CalibrationStudio.App.Views.ScopeView" x:CompileBindings="False">
+  <Grid ColumnDefinitions="*,330" ColumnSpacing="16">
+    <StackPanel Spacing="12">
+      <Border Classes="panel" Background="{DynamicResource ScopeScreenBrush}" ClipToBounds="True">
+        <Grid RowDefinitions="32,Auto,28">
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="12,0">
+            <TextBlock Text="{Binding ScopeNotice}" Foreground="{DynamicResource ScopeTextBrush}"
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            <TextBlock Grid.Column="1" Text="{Binding TimeDiv, StringFormat='{}{0:0.###} ms/div'}"
+                       Foreground="{DynamicResource ScopeTextBrush}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="2" Text="{Binding $parent[Window].DataContext.StatusClock}"
+                       Foreground="{DynamicResource ScopeTextBrush}" VerticalAlignment="Center" />
+          </Grid>
+          <c:StudioChart Grid.Row="1" x:Name="ScopePlot" Classes="scopePlot" Series="{Binding Chart}" IsScope="True"
+                         XAxisUnit="s" ShowCursor="{Binding #CursorToggle.IsChecked}" ShowLegend="False" />
+          <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="20" Margin="12,0" VerticalAlignment="Center">
+            <TextBlock Text="{Binding VoltsDiv1, StringFormat='CH1 {0:0.###} V/div'}"
+                       Foreground="{DynamicResource ScopeCh1Brush}" IsVisible="{Binding Show1}" />
+            <TextBlock Text="{Binding VoltsDiv2, StringFormat='CH2 {0:0.###} V/div'}"
+                       Foreground="{DynamicResource ScopeCh2Brush}" IsVisible="{Binding Show2}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+      <TextBlock Classes="label" Text="Mausrad: Zoom · Ziehen: verschieben oder Cursor A/B bewegen · Doppelklick: Ansicht zurücksetzen"
+                 TextWrapping="Wrap" />
+      <Grid ColumnDefinitions="1.4*,*" ColumnSpacing="16">
+        <Border Classes="panel" ClipToBounds="True" VerticalAlignment="Top">
+          <StackPanel>
+            <TextBlock Classes="heading" Text="Messwerte" Margin="18,12" />
+            <Border Classes="tableHead">
+              <Grid ColumnDefinitions="1.4*,*,*" ColumnSpacing="10">
+                <TextBlock Text="Größe" />
+                <TextBlock Grid.Column="1" Classes="number" Text="CH1" />
+                <TextBlock Grid.Column="2" Classes="number" Text="CH2" />
+              </Grid>
+            </Border>
+            <ItemsControl ItemsSource="{Binding Metrics}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Classes="tableRow">
+                    <Grid ColumnDefinitions="1.4*,*,*" ColumnSpacing="10">
+                      <TextBlock Text="{Binding Label}" />
+                      <TextBlock Grid.Column="1" Classes="number" Text="{Binding Ch1}" />
+                      <TextBlock Grid.Column="2" Classes="number" Text="{Binding Ch2}" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+        <StackPanel Grid.Column="1" Spacing="12">
+          <Border Classes="panel" Padding="18,14,18,16">
+            <StackPanel Spacing="8">
+              <DockPanel>
+                <CheckBox DockPanel.Dock="Right" x:Name="CursorToggle" IsChecked="True" Content="Anzeigen" />
+                <TextBlock Classes="heading" Text="Cursor" VerticalAlignment="Center" />
+              </DockPanel>
+              <TextBlock Classes="label" Text="{Binding #ScopePlot.CursorReadout}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+          <Border Classes="panel" Padding="18,14,18,16">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="heading" Text="Export" />
+              <Button Content="Kurven als CSV exportieren" Command="{Binding ExportCommand}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+    </StackPanel>
+
+    <StackPanel Grid.Column="1" Spacing="12" IsEnabled="{Binding DataContext.IsConnected, RelativeSource={RelativeSource AncestorType={x:Type v:DevicesView}}}">
+      <Border Classes="panel" Padding="18,14,18,16">
+        <StackPanel Spacing="12">
+          <TextBlock Classes="heading" Text="Erfassung" />
+          <WrapPanel ItemSpacing="6" LineSpacing="6">
+            <Button Classes="primary" Content="{Binding RunText}" Command="{Binding RunCommand}" />
+            <Button Content="Einzelaufnahme" Command="{Binding SingleCommand}" />
+            <Button Content="Neu erfassen" Command="{Binding RefreshCommand}" />
+          </WrapPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="panel" BorderBrush="{DynamicResource ScopeCh1Brush}" BorderThickness="1,3,1,1" Padding="18,14,18,16">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <TextBlock Classes="heading" Text="CH1" VerticalAlignment="Center" />
+            <CheckBox Grid.Column="1" Content="Anzeigen" IsChecked="{Binding Show1}" IsEnabled="{Binding CanShow1}" AutomationProperties.Name="CH1 anzeigen" />
+          </Grid>
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="label" Text="V/div" />
+              <NumericUpDown Value="{Binding VoltsDiv1}" Minimum="0.001" Increment="0.5" FormatString="0.###"
+                             AutomationProperties.Name="CH1 Spannung je Teilung" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Classes="label" Text="Kopplung" />
+              <ComboBox ItemsSource="{Binding Couplings}" SelectedItem="{Binding Coupling1}" HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="CH1 Kopplung" />
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="panel" BorderBrush="{DynamicResource ScopeCh2Brush}" BorderThickness="1,3,1,1" Padding="18,14,18,16">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <TextBlock Classes="heading" Text="CH2" VerticalAlignment="Center" />
+            <CheckBox Grid.Column="1" Content="Anzeigen" IsChecked="{Binding Show2}" AutomationProperties.Name="CH2 anzeigen" />
+          </Grid>
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="label" Text="V/div" />
+              <NumericUpDown Value="{Binding VoltsDiv2}" Minimum="0.001" Increment="0.5" FormatString="0.###"
+                             AutomationProperties.Name="CH2 Spannung je Teilung" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Classes="label" Text="Kopplung" />
+              <ComboBox ItemsSource="{Binding Couplings}" SelectedItem="{Binding Coupling2}" HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="CH2 Kopplung" />
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="panel" Padding="18,14,18,16">
+        <StackPanel Spacing="12">
+          <TextBlock Classes="heading" Text="Horizontal &amp; Trigger" />
+          <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="10">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="label" Text="Zeitbasis (ms/div)" />
+              <NumericUpDown Value="{Binding TimeDiv}" Minimum="0.00001" Increment="0.01" FormatString="0.#####"
+                             AutomationProperties.Name="Zeitbasis" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Classes="label" Text="Triggerquelle" />
+              <ComboBox ItemsSource="{Binding TriggerChannels}" SelectedItem="{Binding TriggerChannel}"
+                        HorizontalAlignment="Stretch" AutomationProperties.Name="Triggerquelle" />
+            </StackPanel>
+            <StackPanel Grid.Row="1" Spacing="4">
+              <TextBlock Classes="label" Text="Flanke" />
+              <ComboBox ItemsSource="{Binding TriggerEdges}" SelectedItem="{Binding TriggerEdge}"
+                        HorizontalAlignment="Stretch" AutomationProperties.Name="Triggerflanke" />
+            </StackPanel>
+            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+              <TextBlock Classes="label" Text="Triggerpegel (V)" />
+              <NumericUpDown Value="{Binding TriggerLevel}" Increment="0.1" FormatString="0.###"
+                             AutomationProperties.Name="Triggerpegel" />
+            </StackPanel>
+          </Grid>
+          <Button Content="Einstellungen anwenden" Command="{Binding ApplyCommand}" />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </Grid>
+</UserControl>

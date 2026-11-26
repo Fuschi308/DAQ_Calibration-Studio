@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+             xmlns:v="using:DAQ.CalibrationStudio.App.Views"
+             x:Class="DAQ.CalibrationStudio.App.Views.ReportPointsView" x:CompileBindings="False">
+  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+    <StackPanel MinWidth="580">
+      <Border Classes="tableHead">
+        <Grid ColumnDefinitions="1.1*,*,*,*,*,*,*,1.35*" ColumnSpacing="6">
+          <TextBlock Text="Kanal" />
+          <TextBlock Grid.Column="1" Classes="number" Text="Soll" ToolTip.Tip="Angeforderter Sollwert" />
+          <TextBlock Grid.Column="2" Classes="number" Text="Bestätigt" ToolTip.Tip="Vom Gerät bestätigter Sollwert" />
+          <TextBlock Grid.Column="3" Classes="number" Text="Referenz" ToolTip.Tip="Unabhängiger Referenzwert" />
+          <TextBlock Grid.Column="4" Classes="number" Text="Ist" />
+          <TextBlock Grid.Column="5" Classes="number" Text="Abw." ToolTip.Tip="Abweichung" />
+          <TextBlock Grid.Column="6" Classes="number" Text="Grenze" />
+          <TextBlock Grid.Column="7" Text="Bewertung" />
+        </Grid>
+      </Border>
+      <ItemsControl ItemsSource="{Binding Points}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Classes="tableRow">
+              <Grid ColumnDefinitions="1.1*,*,*,*,*,*,*,1.35*" ColumnSpacing="6">
+                <TextBlock Classes="strong" Text="{Binding Channel}" />
+                <TextBlock Grid.Column="1" Classes="number" Text="{Binding Requested}" />
+                <TextBlock Grid.Column="2" Classes="number" Text="{Binding Confirmed}" />
+                <TextBlock Grid.Column="3" Classes="number" Text="{Binding Independent}" />
+                <TextBlock Grid.Column="4" Classes="number" Text="{Binding Measured}" />
+                <TextBlock Grid.Column="5" Classes="number" Text="{Binding Error}" />
+                <TextBlock Grid.Column="6" Classes="number" Text="{Binding Tolerance}" />
+                <c:StatusBadge Grid.Column="7" Tone="{Binding Tone}" Content="{Binding Status}" ToolTip.Tip="{Binding Status}" />
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

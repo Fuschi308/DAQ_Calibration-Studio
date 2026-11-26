@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+             xmlns:v="using:DAQ.CalibrationStudio.App.Views"
+             x:Class="DAQ.CalibrationStudio.App.Views.DevicesView" x:CompileBindings="False">
+  <Grid RowDefinitions="Auto,*" RowSpacing="16" Margin="16">
+    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12">
+      <c:StudioIcon Glyph="{Binding Icon}" Classes="titleIcon" />
+      <StackPanel Grid.Column="1">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <TextBlock Classes="title" Text="{Binding Title}" />
+          <c:StatusBadge Tone="{Binding StateTone}" Content="{Binding StatusText}" />
+        </StackPanel>
+        <TextBlock Classes="secondary" Text="{Binding Subtitle}" TextWrapping="Wrap" />
+      </StackPanel>
+      <ListBox Grid.Column="2" Classes="segments" ItemsSource="{Binding DeviceNames}" SelectedItem="{Binding DeviceName}"
+               AutomationProperties.Name="Geräteansicht" VerticalAlignment="Center" />
+      <Button Grid.Column="3" Content="{Binding ConnectText}" Command="{Binding ConnectCommand}" VerticalAlignment="Center" />
+    </Grid>
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="12">
+        <Border Classes="note" IsVisible="{Binding CanChooseScopeMode}">
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <TextBlock Text="DAQ, FNIRSI und OWON laufen simuliert." TextWrapping="Wrap" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="{Binding ScopeModeText}" Command="{Binding ToggleScopeModeCommand}" />
+          </Grid>
+        </Border>
+        <Border Classes="note warn" IsVisible="{Binding !IsConnected}">
+          <Grid ColumnDefinitions="Auto,*,180,190,Auto" ColumnSpacing="9">
+            <c:StudioIcon Glyph="alert" Classes="warn" />
+            <TextBlock Grid.Column="1" Text="Geräteverbindung erforderlich" VerticalAlignment="Center" TextWrapping="Wrap" />
+            <ComboBox Grid.Column="2" ItemsSource="{Binding Endpoints}" SelectedItem="{Binding Endpoint}"
+                      HorizontalAlignment="Stretch" AutomationProperties.Name="Gefundene Schnittstellen" />
+            <TextBox Grid.Column="3" Text="{Binding Endpoint}" PlaceholderText="Schnittstelle oder Adresse" AutomationProperties.Name="Verbindungsadresse" />
+            <Button Grid.Column="4" Content="Gerät suchen" Command="{Binding DiscoverCommand}" />
+          </Grid>
+        </Border>
+        <v:DaqView DataContext="{Binding Daq}" IsVisible="{Binding DataContext.ShowDaq, RelativeSource={RelativeSource AncestorType={x:Type v:DevicesView}}}" />
+        <v:FnirsiView DataContext="{Binding Fnirsi}" IsVisible="{Binding DataContext.ShowFnirsi, RelativeSource={RelativeSource AncestorType={x:Type v:DevicesView}}}" />
+        <v:OwonView DataContext="{Binding Owon}" IsVisible="{Binding DataContext.ShowOwon, RelativeSource={RelativeSource AncestorType={x:Type v:DevicesView}}}" />
+        <v:ScopeView DataContext="{Binding Scope}" IsVisible="{Binding DataContext.ShowScope, RelativeSource={RelativeSource AncestorType={x:Type v:DevicesView}}}" />
+        <Grid IsVisible="{Binding !ShowDaq}" ColumnDefinitions="*,*" ColumnSpacing="16">
+          <Border Classes="panel" Padding="18,14,18,16" VerticalAlignment="Top">
+            <StackPanel Spacing="10">
+              <DockPanel>
+                <Button DockPanel.Dock="Right" Classes="tool" Content="Gerät identifizieren" Command="{Binding IdentifyCommand}" />
+                <TextBlock Classes="heading" Text="Geräteinformationen" VerticalAlignment="Center" />
+              </DockPanel>
+              <v:FactList ItemsSource="{Binding Facts}" />
+              <v:FactList ItemsSource="{Binding Diagnostics}" />
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="1" Classes="panel" Padding="18,14,18,16" VerticalAlignment="Top">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="heading" Text="Funktionsumfang" />
+              <ItemsControl ItemsSource="{Binding Capabilities}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,3">
+                      <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
+                      <c:StatusBadge Grid.Column="1" Content="{Binding Value}" Tone="{Binding Tone}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </Grid>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

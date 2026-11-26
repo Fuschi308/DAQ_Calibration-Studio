@@ -1,0 +1,150 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+             xmlns:v="using:DAQ.CalibrationStudio.App.Views"
+             x:Class="DAQ.CalibrationStudio.App.Views.LiveView" x:CompileBindings="False">
+  <Grid RowDefinitions="Auto,*" RowSpacing="12" Margin="16">
+    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+      <c:StudioIcon Glyph="live" Classes="titleIcon" />
+      <StackPanel Grid.Column="1">
+        <TextBlock Classes="title" Text="Live-Messdaten" />
+        <TextBlock Classes="secondary" Text="Mehrkanalanalyse unabhängig vom Prüfablauf" TextWrapping="Wrap" />
+      </StackPanel>
+      <WrapPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" ItemSpacing="8" LineSpacing="5">
+        <ListBox Classes="segments" ItemsSource="{Binding Windows}" SelectedItem="{Binding Window}"
+                 VerticalAlignment="Center" AutomationProperties.Name="Zeitfenster der Messdaten" />
+        <Button Classes="tool" Content="Anzeige anhalten" Command="{Binding HoldCommand}" IsVisible="{Binding !IsHeld}" />
+        <Button Classes="tool" Content="Live fortsetzen" Command="{Binding HoldCommand}" IsVisible="{Binding IsHeld}" />
+        <Button Classes="primary" Content="{Binding RecordText}" Command="{Binding RecordCommand}" />
+      </WrapPanel>
+    </Grid>
+    <TabControl Grid.Row="1">
+      <TabItem Header="Diagramme">
+        <Grid ColumnDefinitions="250,*" ColumnSpacing="16" Margin="0,12,0,0">
+          <Border Classes="panel" VerticalAlignment="Top">
+            <Grid RowDefinitions="46,*,Auto">
+              <Grid ColumnDefinitions="*,Auto" Margin="18,0,12,0">
+                <TextBlock Classes="heading" Text="Kanäle" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="tool" Content="Fenster leeren" Command="{Binding ClearCommand}" VerticalAlignment="Center" />
+              </Grid>
+              <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Channels}" Margin="12,0,12,8">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid ColumnDefinitions="20,10,*,Auto" ColumnSpacing="6" MinHeight="26" ToolTip.Tip="{Binding Name}">
+                        <CheckBox Classes="compact" IsChecked="{Binding IsChecked}" VerticalAlignment="Center"
+                                  AutomationProperties.Name="{Binding Id}" />
+                        <c:PaletteMark Grid.Column="1" Index="{Binding ColorIndex}" Width="10" Height="3" />
+                        <TextBlock Grid.Column="2" Classes="label" Text="{Binding Id}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="3" Classes="label number" Text="{Binding Measured}" VerticalAlignment="Center" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+              <Button Grid.Row="2" Classes="tool" Content="CSV exportieren" Command="{Binding ExportCommand}"
+                      Margin="12,0,12,8" HorizontalAlignment="Left" />
+            </Grid>
+          </Border>
+          <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="label" Text="{Binding Status}" TextWrapping="Wrap" />
+              <ItemsControl ItemsSource="{Binding Plots}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Classes="panel" Padding="18,14,18,12" Margin="0,0,0,12">
+                      <StackPanel Spacing="10">
+                        <TextBlock Classes="heading" Text="{Binding Label}" />
+                        <c:StudioChart Series="{Binding Series}" XAxisUnit="s" Height="194" ShowCursor="True" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Statistik">
+        <ScrollViewer Margin="0,12,0,0" VerticalScrollBarVisibility="Auto">
+          <Border Classes="panel" ClipToBounds="True">
+            <StackPanel>
+              <TextBlock Classes="heading" Margin="18,14" Text="Messwertstatistik" />
+              <Border Classes="tableHead">
+                <Grid ColumnDefinitions="*,*,*,*,*,*" ColumnSpacing="12">
+                  <TextBlock Text="Kanal" />
+                  <TextBlock Grid.Column="1" Text="Mittelwert" Classes="number" />
+                  <TextBlock Grid.Column="2" Text="Standardabweichung σ" Classes="number" />
+                  <TextBlock Grid.Column="3" Text="Minimum" Classes="number" />
+                  <TextBlock Grid.Column="4" Text="Maximum" Classes="number" />
+                  <TextBlock Grid.Column="5" Text="Einheit" />
+                </Grid>
+              </Border>
+              <ItemsControl ItemsSource="{Binding Statistics}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Classes="tableRow">
+                      <Grid ColumnDefinitions="*,*,*,*,*,*" ColumnSpacing="12">
+                        <TextBlock Classes="strong" Text="{Binding Channel}" />
+                        <TextBlock Grid.Column="1" Classes="number" Text="{Binding Mean}" />
+                        <TextBlock Grid.Column="2" Classes="number" Text="{Binding StdDev}" />
+                        <TextBlock Grid.Column="3" Classes="number" Text="{Binding Min}" />
+                        <TextBlock Grid.Column="4" Classes="number" Text="{Binding Max}" />
+                        <TextBlock Grid.Column="5" Classes="label" Text="{Binding Unit}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="Rohdaten">
+        <ScrollViewer Margin="0,12,0,0" VerticalScrollBarVisibility="Auto">
+          <Border Classes="panel" ClipToBounds="True">
+            <StackPanel>
+              <TextBlock Classes="heading" Margin="18,14" Text="Letzter Messblock je Kanal" />
+              <Border Classes="tableHead">
+                <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="12">
+                  <TextBlock Text="Kanal" />
+                  <TextBlock Grid.Column="1" Text="ADC-Code" Classes="number" />
+                  <TextBlock Grid.Column="2" Text="Skaliert" Classes="number" />
+                  <TextBlock Grid.Column="3" Text="Korrigiert" Classes="number" />
+                  <TextBlock Grid.Column="4" Text="Einheit" />
+                </Grid>
+              </Border>
+              <ItemsControl ItemsSource="{Binding Statistics}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Classes="tableRow">
+                      <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="12">
+                        <TextBlock Classes="strong" Text="{Binding Channel}" />
+                        <TextBlock Grid.Column="1" Classes="mono number" Text="{Binding Raw}" />
+                        <TextBlock Grid.Column="2" Classes="number" Text="{Binding Scaled}" />
+                        <TextBlock Grid.Column="3" Classes="number" Text="{Binding Corrected}" />
+                        <TextBlock Grid.Column="4" Classes="label" Text="{Binding Unit}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="Aufzeichnungen">
+        <Border Classes="panel" Margin="0,12,0,0" Padding="18,14,18,16" VerticalAlignment="Top">
+          <StackPanel Spacing="12">
+            <TextBlock Classes="heading" Text="Aufzeichnung" />
+            <TextBlock Classes="secondary" Text="{Binding Status}" TextWrapping="Wrap" />
+            <Button Content="Messdaten als CSV exportieren" Command="{Binding ExportCommand}" />
+          </StackPanel>
+        </Border>
+      </TabItem>
+    </TabControl>
+  </Grid>
+</UserControl>

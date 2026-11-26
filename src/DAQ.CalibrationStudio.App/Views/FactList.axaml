@@ -1,0 +1,13 @@
+<ItemsControl xmlns="https://github.com/avaloniaui"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+              x:Class="DAQ.CalibrationStudio.App.Views.FactList" x:CompileBindings="False">
+  <ItemsControl.ItemTemplate>
+    <DataTemplate>
+      <Grid ColumnDefinitions=".9*,1.1*" ColumnSpacing="8" Margin="0,3">
+        <TextBlock Classes="secondary" Text="{Binding Label}" TextWrapping="Wrap" />
+        <c:ToneText Grid.Column="1" Text="{Binding Value}" Tone="{Binding Tone}" TextWrapping="Wrap" />
+      </Grid>
+    </DataTemplate>
+  </ItemsControl.ItemTemplate>
+</ItemsControl>

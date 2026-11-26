@@ -1,0 +1,124 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:DAQ.CalibrationStudio.App.Controls"
+             xmlns:v="using:DAQ.CalibrationStudio.App.Views"
+             x:Class="DAQ.CalibrationStudio.App.Views.DaqView" x:CompileBindings="False">
+  <Grid ColumnDefinitions="330,*" ColumnSpacing="16">
+    <StackPanel Spacing="12">
+      <Border Classes="panel" Padding="18,14,18,16">
+        <StackPanel Spacing="14">
+          <TextBlock Classes="heading" Text="Geräteinformationen" />
+          <v:FactList ItemsSource="{Binding DataContext.Facts, RelativeSource={RelativeSource AncestorType={x:Type v:DevicesView}}}" />
+          <WrapPanel ItemSpacing="6" LineSpacing="6">
+            <Button Content="{Binding AcquisitionText}" Command="{Binding AcquisitionCommand}" />
+            <Button Content="Identifizieren" Command="{Binding DataContext.IdentifyCommand, RelativeSource={RelativeSource AncestorType={x:Type v:DevicesView}}}" />
+          </WrapPanel>
+        </StackPanel>
+      </Border>
+      <Border Classes="panel" Padding="18,14,18,16">
+        <StackPanel Spacing="12">
+          <DockPanel>
+            <Button DockPanel.Dock="Right" Classes="tool" Content="Aktualisieren"
+                    Command="{Binding DiagnosticsCommand}" />
+            <TextBlock Classes="heading" Text="Diagnose" VerticalAlignment="Center" />
+          </DockPanel>
+          <v:FactList ItemsSource="{Binding DataContext.Diagnostics, RelativeSource={RelativeSource AncestorType={x:Type v:DevicesView}}}" />
+        </StackPanel>
+      </Border>
+      <Border Classes="panel" Padding="18,14,18,16">
+        <StackPanel Spacing="12">
+          <TextBlock Classes="heading" Text="Digitalausgänge" />
+          <ItemsControl ItemsSource="{Binding Outputs}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><WrapPanel ItemSpacing="6" LineSpacing="6" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate><Button Content="{Binding Label}" Command="{Binding ToggleCommand}" /></DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+      <Border Classes="panel" Padding="18,14,18,16">
+        <StackPanel Spacing="12">
+          <TextBlock Classes="heading" Text="Funktionsumfang" />
+          <v:FactList ItemsSource="{Binding DataContext.Capabilities, RelativeSource={RelativeSource AncestorType={x:Type v:DevicesView}}}" />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+
+    <StackPanel Grid.Column="1" Spacing="12">
+      <Border Classes="panel" Padding="18,14,18,16">
+        <StackPanel Spacing="12">
+          <TextBlock Classes="heading" Text="Kanalübersicht" />
+          <ListBox Classes="cards" ItemsSource="{Binding Channels}" SelectedItem="{Binding SelectedChannel}"
+                   AutomationProperties.Name="DAQ-Kanäle" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemsPanel>
+              <ItemsPanelTemplate><WrapPanel ItemWidth="151" ItemSpacing="7" LineSpacing="2" /></ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Spacing="6" MinHeight="52">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Classes="strong" Text="{Binding Id}" />
+                    <c:StatusBadge Grid.Column="1" Content="{Binding Status}" Tone="{Binding StateTone}" />
+                  </Grid>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <c:PaletteMark Index="{Binding ColorIndex}" Width="10" Height="3" />
+                    <TextBlock Classes="metric" Text="{Binding Measured}" />
+                  </StackPanel>
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="panel" Padding="18,14,18,16">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="heading" Text="{Binding SelectedChannel.Id, StringFormat='Kanaldetail · {0}'}" />
+            <c:StatusBadge Grid.Column="1" Classes="outline" Content="{Binding SelectedChannel.Calibration}" />
+          </Grid>
+          <Grid ColumnDefinitions="225,*" ColumnSpacing="16">
+            <StackPanel Spacing="12">
+              <StackPanel Spacing="2">
+                <TextBlock Classes="label" Text="Aktueller Messwert (korrigiert)" />
+                <TextBlock Classes="reading" Text="{Binding SelectedChannel.Measured}" />
+              </StackPanel>
+              <v:FactList ItemsSource="{Binding Statistics}" />
+              <StackPanel Spacing="4" IsVisible="{Binding $parent[Window].DataContext.IsSimulated}" IsEnabled="{Binding CanStimulate}">
+                <TextBlock Classes="label" Text="Simulierte Eingangsgröße" />
+                <NumericUpDown Value="{Binding Input}" FormatString="0.####" Increment="0.1" AutomationProperties.Name="Simulierte Eingangsgröße" />
+                <Button Content="Eingangsgröße anwenden" Command="{Binding ApplyInputCommand}" />
+              </StackPanel>
+              <Button Content="FNIRSI diesem Kanal zuordnen" Command="{Binding AssignCommand}" IsEnabled="{Binding CanRoute}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="12">
+              <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                <Border Classes="inset">
+                  <StackPanel Spacing="6">
+                    <TextBlock Classes="label strong" Text="1 · Rohdaten" />
+                    <TextBlock Classes="mono" Text="{Binding Raw}" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Classes="inset" Background="{DynamicResource AccentSoftBrush}" BorderBrush="{DynamicResource AccentBrush}">
+                  <StackPanel Spacing="6">
+                    <TextBlock Classes="label strong" Text="2 · Aktive Korrektur" />
+                    <TextBlock Text="{Binding Correction}" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Classes="inset">
+                  <StackPanel Spacing="6">
+                    <TextBlock Classes="label strong" Text="3 · Korrigierter Wert" />
+                    <TextBlock Text="{Binding Computed}" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
+              </Grid>
+              <c:StudioChart Series="{Binding Chart}" Height="236" WindowSeconds="5" ShowCursor="True" />
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </Grid>
+</UserControl>
